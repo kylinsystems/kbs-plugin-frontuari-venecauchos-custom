@@ -31,7 +31,7 @@ public class FTUEventsHandler extends AbstractEventHandler {
 	
 	protected void initialize() {
 		
-		registerTableEvent(IEventTopics.DOC_AFTER_PREPARE, MOrder.Table_Name);
+		registerTableEvent(IEventTopics.DOC_BEFORE_PREPARE, MOrder.Table_Name);
 		registerTableEvent(IEventTopics.DOC_BEFORE_POST, MPayment.Table_Name);
 		registerTableEvent(IEventTopics.DOC_BEFORE_POST, MAllocationHdr.Table_Name);
 	}
@@ -41,7 +41,7 @@ public class FTUEventsHandler extends AbstractEventHandler {
 		String type = event.getTopic();
 		log.info(po.get_TableName() + " Type: " + type);
 		if(po instanceof MOrder){
-			if(type.equalsIgnoreCase(IEventTopics.DOC_AFTER_PREPARE)){
+			if(type.equalsIgnoreCase(IEventTopics.DOC_BEFORE_PREPARE)){
 				MOrder order = (MOrder)po;
 				if(order.getPaymentRule().equals(order.PAYMENTRULE_MixedPOSPayment)){
 					BigDecimal PaidAmt = Env.ZERO;
