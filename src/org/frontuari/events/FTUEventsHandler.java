@@ -49,14 +49,14 @@ public class FTUEventsHandler extends AbstractEventHandler {
 							+ "FROM C_POSPayment "
 							+ "WHERE C_Order_ID = ? ";
 					PaidAmt = DB.getSQLValueBD(null, sql, order.getC_Order_ID());
-					if(PaidAmt != null){
-						//	Validate PaidAmt from POSPayment
-						if(order.getGrandTotal().subtract(PaidAmt).compareTo(Env.ZERO) != 0){
-							throw new AdempiereException("@POSPaymentDiffers@"
-									+ " @GrandTotal@: "+order.getGrandTotal()
-									+ " @PaidAmt@: "+PaidAmt
-									+ " @amount.difference@: "+order.getGrandTotal().subtract(PaidAmt));
-						}
+					if(PaidAmt == null)
+						PaidAmt = Env.ZERO;
+					//	Validate PaidAmt from POSPayment
+					if(order.getGrandTotal().subtract(PaidAmt).compareTo(Env.ZERO) != 0){
+						throw new AdempiereException("@POSPaymentDiffers@"
+								+ " @GrandTotal@: "+order.getGrandTotal()
+								+ " @PaidAmt@: "+PaidAmt
+								+ " @amount.difference@: "+order.getGrandTotal().subtract(PaidAmt));
 					}
 				}
 			}
