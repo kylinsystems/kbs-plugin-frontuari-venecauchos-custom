@@ -39,7 +39,6 @@ public class FTUEventsHandler extends AbstractEventHandler {
 	protected void doHandleEvent(Event event) {
 		PO po = getPO(event);
 		String type = event.getTopic();
-		log.info(po.get_TableName() + " Type: " + type);
 		if(po instanceof MOrder){
 			if(type.equalsIgnoreCase(IEventTopics.DOC_BEFORE_PREPARE)){
 				MOrder order = (MOrder)po;

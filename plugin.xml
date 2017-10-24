@@ -10,4 +10,13 @@
             priority="0">
       </process>
    </extension>
+   <extension
+         id="org.frontuari.process.Aging"
+         name="Aging"
+         point="org.adempiere.base.Process">
+      <process
+            class="org.frontuari.process.Aging"
+            priority="0">
+      </process>
+   </extension>
 </plugin>

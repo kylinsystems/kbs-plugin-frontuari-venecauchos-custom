@@ -6,6 +6,7 @@ package org.frontuari.process;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.logging.Level;
 
 import org.adempiere.exceptions.AdempiereException;
@@ -174,6 +175,8 @@ public class VoidFiscalInvoiced extends SvrProcess{
 		m_CreditNote.setC_DocTypeTarget_ID(p_C_DocType_ID);
 		//	Set DocumentType New
 		m_CreditNote.setC_DocType_ID(0);
+		m_CreditNote.setDateInvoiced(new Timestamp(System.currentTimeMillis()));
+		m_CreditNote.setDateAcct(new Timestamp(System.currentTimeMillis()));
 		m_CreditNote.set_ValueOfColumn("LVE_InvoiceAffected_ID", inv.getC_Invoice_ID());
 		m_CreditNote.setPaymentRule(MInvoice.PAYMENTRULE_OnCredit);
 		m_CreditNote.setC_Payment_ID(0);
@@ -224,8 +227,8 @@ public class VoidFiscalInvoiced extends SvrProcess{
 		//	Create AllocationHdr Object
 		MAllocationHdr AHeader = new MAllocationHdr(getCtx(), 0, get_TrxName());
 		AHeader.setAD_Org_ID(p_AD_Org_ID);
-		AHeader.setDateTrx(inv.getDateAcct());
-		AHeader.setDateAcct(inv.getDateAcct());
+		AHeader.setDateTrx(new Timestamp(System.currentTimeMillis()));
+		AHeader.setDateAcct(new Timestamp(System.currentTimeMillis()));
 		AHeader.setC_Currency_ID(inv.getC_Currency_ID());
 		
 		AHeader.saveEx(get_TrxName());
@@ -314,8 +317,8 @@ public class VoidFiscalInvoiced extends SvrProcess{
 		m_RM.setC_DocType_ID(p_C_RMDocType_ID);
 		m_RM.setMovementType(MInOut.MOVEMENTTYPE_CustomerReturns);
 		m_RM.setIsSOTrx(inv.isSOTrx());
-		m_RM.setMovementDate(inv.getDateInvoiced());
-		m_RM.setDateAcct(inv.getDateAcct());
+		m_RM.setMovementDate(new Timestamp(System.currentTimeMillis()));
+		m_RM.setDateAcct(new Timestamp(System.currentTimeMillis()));
 		m_RM.setC_BPartner_ID(inv.getC_BPartner_ID());
 		m_RM.setC_BPartner_Location_ID(inv.getC_BPartner_Location_ID());
 		m_RM.setM_Warehouse_ID(inv.getC_Order().getM_Warehouse_ID());
