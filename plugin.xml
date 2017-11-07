@@ -19,4 +19,13 @@
             priority="0">
       </process>
    </extension>
+   <extension
+         id="org.frontuari.process.CommissionCalc"
+         name="CommissionCalc"
+         point="org.adempiere.base.Process">
+      <process
+            class="org.frontuari.process.CommissionCalc"
+            priority="0">
+      </process>
+   </extension>
 </plugin>

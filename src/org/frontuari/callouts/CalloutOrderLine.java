@@ -113,7 +113,7 @@ public class CalloutOrderLine implements IColumnCallout {
 						+ "FROM M_Product p "
 						+ "WHERE p.ProductType = 'I') p ON pp.M_Product_ID = p.M_Product_ID "
 						+ "LEFT JOIN RV_Storage s ON pp.M_Product_ID = s.M_Product_ID "
-						+ "LEFT JOIN M_DiscountSchemaLine dsl ON ((dsl.M_Product_ID IS NULL AND p.M_Product_Category_ID = dsl.M_Product_Category_ID) OR (dsl.M_Product_ID IS NOT NULL AND dsl.M_Product_ID = p.M_Product_ID)) "
+						+ "LEFT JOIN M_DiscountSchemaLine dsl ON plv.M_DiscountSchema_ID = dsl.M_DiscountSchema_ID AND ((dsl.M_Product_ID IS NULL AND p.M_Product_Category_ID = dsl.M_Product_Category_ID) OR (dsl.M_Product_ID IS NOT NULL AND dsl.M_Product_ID = p.M_Product_ID)) "
 						+ "WHERE pl.M_PriceList_ID = ? AND plv.M_PriceList_Version_ID = ? AND pp.M_Product_ID = ? AND COALESCE(s.M_AttributeSetInstance_ID,0) = ? "
 						+ "GROUP BY pl.M_PriceList_ID,plv.M_PriceList_Version_ID,pp.M_Product_ID,s.M_AttributeSetInstance_ID ";
 				PreparedStatement pstmt = null;
