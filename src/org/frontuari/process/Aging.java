@@ -142,7 +142,7 @@ public class Aging extends SvrProcess
 		}
 		sql.append(",oi.C_Activity_ID,oi.C_Campaign_ID,oi.C_Project_ID,oi.AD_Org_ID ");	//	14..17
 		//	Added By Jorge Colmenarez, 2017-10-03 08:42 
-		sql.append(",bp.Value AS BPValue, COALESCE(t.Name,'')||bp.TaxID AS BPTaxID ");	//	18..19 
+		sql.append(",bp.Value AS BPValue, COALESCE(t.Name,'')||bp.TaxID AS BPTaxID, bp.Name AS BPName ");	//	18..20 
 		//	End Jorge Colmenarez
 		if (!p_DateAcct)//FR 1933937
 		{
@@ -222,6 +222,7 @@ public class Aging extends SvrProcess
 				//	Added By Jorge Colmenarez, 2017-10-03 08:44
 				String BPValue = rs.getString(18);
 				String BPTaxID = rs.getString(19);
+				String BPName = rs.getString(20);
 				//	End Jorge Colmenarez
 				rows++;
 				//	New Aging Row
@@ -251,6 +252,7 @@ public class Aging extends SvrProcess
 				//	Added by Jorge Colmenarez, 2017-10-03 08:46
 				aging.set_ValueOfColumn("BPValue", BPValue);
 				aging.set_ValueOfColumn("BPTaxID", BPTaxID);
+				aging.set_ValueOfColumn("BPName", BPName);
 				add(aging,DaysDue,OpenAmt);
 				//	End Jorge Colmenarez
 			}
