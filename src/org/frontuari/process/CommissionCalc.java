@@ -114,10 +114,12 @@ public class CommissionCalc extends SvrProcess
 				if (m_com.isListDetails())
 				{
 					sql.append("SELECT h.C_Currency_ID, CASE WHEN h.GrandTotal <> 0 ")
-						.append(" 		THEN (l.LineNetAmt*al.Amount/h.GrandTotal) ")
+						//.append(" 		THEN (l.LineNetAmt*al.Amount/h.GrandTotal) ") Support for apply amt from LVE Withholding 
+						.append(" 		THEN (l.LineNetAmt*(CASE WHEN p.PayAmt <> 0 THEN al.Amount ELSE al.WriteOffAmt END)/h.GrandTotal) ")
 						.append("		ELSE 0 END AS Amt,")
 						.append(" CASE WHEN h.GrandTotal <> 0 ")
-						.append("		THEN (l.QtyInvoiced*al.Amount/h.GrandTotal) ")
+						//.append("		THEN (l.QtyInvoiced*al.Amount/h.GrandTotal) ") Support for apply amt from LVE Withholding
+						.append("		THEN (l.QtyInvoiced*(CASE WHEN p.PayAmt <> 0 THEN al.Amount ELSE al.WriteOffAmt END)/h.GrandTotal) ")
 						.append("		ELSE 0 END AS Qty,")
 						.append(" NULL, l.C_InvoiceLine_ID, p.DocumentNo||'_'||h.DocumentNo,")
 						.append(" COALESCE(prd.Value,l.Description), h.DateInvoiced ")
@@ -126,7 +128,8 @@ public class CommissionCalc extends SvrProcess
 						.append(" INNER JOIN C_Invoice h ON (al.C_Invoice_ID = h.C_Invoice_ID)")
 						.append(" INNER JOIN C_InvoiceLine l ON (h.C_Invoice_ID = l.C_Invoice_ID) ")
 						.append(" LEFT OUTER JOIN M_Product prd ON (l.M_Product_ID = prd.M_Product_ID) ")
-						.append("WHERE p.DocStatus IN ('CL','CO','RE')")
+						//.append("WHERE p.DocStatus IN ('CL','CO','RE')") Remove Reverse Document 
+						.append("WHERE p.DocStatus IN ('CL','CO')")
 						.append(" AND h.IsSOTrx='Y'")
 						.append(" AND p.AD_Client_ID = ?")
 						.append(" AND p.DateTrx BETWEEN ? AND ?");
@@ -135,15 +138,18 @@ public class CommissionCalc extends SvrProcess
 				{
 					sql.append("SELECT h.C_Currency_ID, ")
 						.append(" SUM(CASE WHEN h.GrandTotal <> 0 ")
-						.append("		THEN l.LineNetAmt*al.Amount/h.GrandTotal ELSE 0 END) AS Amt,")
+						//.append("		THEN l.LineNetAmt*al.Amount/h.GrandTotal ELSE 0 END) AS Amt,") Support for apply amt from LVE Withholding
+						.append("		THEN l.LineNetAmt*(CASE WHEN p.PayAmt <> 0 THEN al.Amount ELSE al.WriteOffAmt END)/h.GrandTotal ELSE 0 END) AS Amt,")
 						.append(" SUM(CASE WHEN h.GrandTotal <> 0 ")
-						.append("		THEN l.QtyInvoiced*al.Amount/h.GrandTotal ELSE 0 END) AS Qty,")
+						//.append("		THEN l.QtyInvoiced*al.Amount/h.GrandTotal ELSE 0 END) AS Qty,") Support for apply amt from LVE Withholding
+						.append("		THEN l.QtyInvoiced*(CASE WHEN p.PayAmt <> 0 THEN al.Amount ELSE al.WriteOffAmt END)/h.GrandTotal ELSE 0 END) AS Qty,")
 						.append(" NULL, NULL, NULL, NULL, MAX(h.DateInvoiced) ")
 						.append("FROM C_Payment p")
 						.append(" INNER JOIN C_AllocationLine al ON (p.C_Payment_ID=al.C_Payment_ID)")
 						.append(" INNER JOIN C_Invoice h ON (al.C_Invoice_ID = h.C_Invoice_ID)")
 						.append(" INNER JOIN C_InvoiceLine l ON (h.C_Invoice_ID = l.C_Invoice_ID) ")
-						.append("WHERE p.DocStatus IN ('CL','CO','RE')")
+						//.append("WHERE p.DocStatus IN ('CL','CO','RE')")	Remove Reverse Document
+						.append("WHERE p.DocStatus IN ('CL','CO')")
 						.append(" AND h.IsSOTrx='Y'")
 						.append(" AND p.AD_Client_ID = ?")
 						.append(" AND p.DateTrx BETWEEN ? AND ?");
