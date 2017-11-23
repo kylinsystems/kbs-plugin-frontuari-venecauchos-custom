@@ -283,11 +283,8 @@ public class VoidFiscalInvoiced extends SvrProcess{
 			m_RMALine.setM_RMA_ID(m_RMA.getM_RMA_ID());
 			m_RMALine.setAD_Org_ID(p_AD_Org_ID);
 			m_RMALine.setM_InOutLine_ID(line.getM_InOutLine_ID());
-			//	Set Product or Charge
-			if(line.getM_Product_ID()!=0)
-				m_RMALine.setM_Product_ID(line.getM_Product_ID());
-			else
-				m_RMALine.setC_Charge_ID(line.getC_Charge_ID());
+			//	Set Product
+			m_RMALine.setM_Product_ID(line.getM_Product_ID());
 			m_RMALine.setQty(line.getMovementQty());
 			m_RMALine.setAmt(line.getC_OrderLine().getPriceEntered());
 			m_RMALine.setC_Tax_ID(line.getC_OrderLine().getC_Tax_ID());
@@ -352,15 +349,14 @@ public class VoidFiscalInvoiced extends SvrProcess{
 				m_RMLine.setM_RMALine_ID(rs.getInt("M_RMALine_ID"));
 				//	Get RMA Line Object
 				MRMALine m_RMALine = new MRMALine(getCtx(), rs.getInt("M_RMALine_ID"), get_TrxName());
-				//	Set Product or Charge
-				if(m_RMALine.getM_Product_ID()!=0){
-					m_RMLine.setM_Product_ID(m_RMALine.getM_Product_ID());
-					m_RMLine.setM_AttributeSetInstance_ID(m_RMALine.getM_AttributeSetInstance_ID());
-				}else{
-					m_RMLine.setC_Charge_ID(m_RMALine.getC_Charge_ID());
-				}
+				//	Set Product
+				m_RMLine.setM_Product_ID(m_RMALine.getM_Product_ID());
+				m_RMLine.setM_AttributeSetInstance_ID(m_RMALine.getM_AttributeSetInstance_ID());
+				if(m_RMALine.getM_Locator_ID() != 0)
+					m_RMLine.setM_Locator_ID(m_RMALine.getM_Locator_ID());
+				else
+					m_RMLine.setM_Locator_ID(m_RM.getM_Warehouse().getM_ReserveLocator_ID());
 				m_RMLine.setC_UOM_ID(m_RMALine.getC_UOM_ID());
-				m_RMLine.setM_Locator_ID(m_RMALine.getM_Locator_ID());
 				m_RMLine.setMovementQty(m_RMALine.getQty());
 				m_RMLine.setQtyEntered(m_RMALine.getQty());
 				//	Save
