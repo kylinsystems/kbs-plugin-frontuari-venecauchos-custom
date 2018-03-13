@@ -14,6 +14,7 @@ import org.compiere.acct.Fact;
 import org.compiere.model.MAllocationHdr;
 import org.compiere.model.MOrder;
 import org.compiere.model.MPayment;
+import org.compiere.model.MSysConfig;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
@@ -33,6 +34,7 @@ public class FTUEventsHandler extends AbstractEventHandler {
 		
 		registerTableEvent(IEventTopics.DOC_BEFORE_PREPARE, MOrder.Table_Name);
 		registerTableEvent(IEventTopics.DOC_BEFORE_POST, MPayment.Table_Name);
+		registerTableEvent(IEventTopics.PO_BEFORE_NEW, MPayment.Table_Name);
 		registerTableEvent(IEventTopics.DOC_BEFORE_POST, MAllocationHdr.Table_Name);
 	}
 
@@ -69,9 +71,23 @@ public class FTUEventsHandler extends AbstractEventHandler {
 		}
 		//	Apply Distributions for InterOrg Accounts into Payments
 		else if(po instanceof MPayment){
+			MPayment pay = (MPayment)po;
 			if(type.equalsIgnoreCase(IEventTopics.DOC_BEFORE_POST)){
-				MPayment pay = (MPayment)po;
 				ApplyDistribution(pay.getDoc());
+			}
+			else if(type.equalsIgnoreCase(IEventTopics.PO_BEFORE_NEW)){
+				if(pay.getC_POSTenderType_ID()!=0 && pay.getC_Invoice_ID() != 0){
+					int LVE_POSDocType_ID = MSysConfig.getIntValue("LVE_POSDocTypeId",0,pay.getAD_Client_ID(), pay.getAD_Org_ID());
+					if(LVE_POSDocType_ID != 0){
+						pay.setC_DocType_ID(LVE_POSDocType_ID);
+					}
+					else{
+						LVE_POSDocType_ID = MSysConfig.getIntValue("LVE_POSDocTypeId",0,pay.getAD_Client_ID(), 0);
+						if(LVE_POSDocType_ID != 0){
+							pay.setC_DocType_ID(LVE_POSDocType_ID);
+						}
+					}
+				}
 			}
 		}
 	}

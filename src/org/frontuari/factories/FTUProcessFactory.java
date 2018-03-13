@@ -7,13 +7,14 @@ import org.adempiere.base.IProcessFactory;
 import org.compiere.process.ProcessCall;
 import org.frontuari.process.Aging;
 import org.frontuari.process.CommissionCalc;
+import org.frontuari.process.ImportInventory;
 import org.frontuari.process.VoidFiscalInvoiced;
 
 /**
  * @author jcolmenarez,21 sept. 2017
  *
  */
-public class FTU_ProcessFactory implements IProcessFactory {
+public class FTUProcessFactory implements IProcessFactory {
 	
 	public ProcessCall newProcessInstance(String className) {
 		
@@ -25,6 +26,9 @@ public class FTU_ProcessFactory implements IProcessFactory {
 		
 		if(className.equals("org.frontuari.process.CommissionCalc"))
 			return new CommissionCalc();
+		
+		if(className.equals("org.frontuari.process.ImportInventory"))
+			return new ImportInventory();
 		
 		return null;
 	}

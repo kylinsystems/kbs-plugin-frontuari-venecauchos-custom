@@ -5,14 +5,20 @@ Bundle-SymbolicName: frontuari-features;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: org.adempiere.plugin.utils.Incremental2PackActivator
 Require-Bundle: org.adempiere.base;bundle-version="4.1.0",
- org.adempiere.plugin.utils;bundle-version="4.1.0"
+ org.adempiere.plugin.utils;bundle-version="4.1.0",
+ org.adempiere.ui.zk;bundle-version="4.1.0",
+ org.idempiere.webservices
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Service-Component: OSGI-INF/LVE_FTUCallOutFactory.xml,OSGI-INF/LVE_FTUEventHandler.xml,
- OSGI-INF/LVE_FTUProcess.xml
+ OSGI-INF/LVE_FTUProcess.xml,OSGI-INF/LVE_FTUModelFactory.xml
 Bundle-ActivationPolicy: lazy
 Import-Package: org.osgi.service.event;version="1.3.0"
 Bundle-Vendor: Frontuari, C.A.
 Export-Package: org.frontuari.callouts,
+ org.frontuari.component,
  org.frontuari.events,
  org.frontuari.factories,
- org.frontuari.process
+ org.frontuari.info,
+ org.frontuari.model,
+ org.frontuari.process,
+ org.frontuari.webui.apps.form
