@@ -77,19 +77,6 @@ public interface I_LVE_MajorPlan
 	  */
 	public BigDecimal getAmount();
 
-    /** Column name AmtApproval */
-    public static final String COLUMNNAME_AmtApproval = "AmtApproval";
-
-	/** Set Approval Amount.
-	  * The approval amount limit for this role
-	  */
-	public void setAmtApproval (BigDecimal AmtApproval);
-
-	/** Get Approval Amount.
-	  * The approval amount limit for this role
-	  */
-	public BigDecimal getAmtApproval();
-
     /** Column name C_Payment_ID */
     public static final String COLUMNNAME_C_Payment_ID = "C_Payment_ID";
 
@@ -185,19 +172,6 @@ public interface I_LVE_MajorPlan
 	  * Document sequence number of the document
 	  */
 	public String getDocumentNo();
-
-    /** Column name DueDate */
-    public static final String COLUMNNAME_DueDate = "DueDate";
-
-	/** Set Due Date.
-	  * Date when the payment is due
-	  */
-	public void setDueDate (Timestamp DueDate);
-
-	/** Get Due Date.
-	  * Date when the payment is due
-	  */
-	public Timestamp getDueDate();
 
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";

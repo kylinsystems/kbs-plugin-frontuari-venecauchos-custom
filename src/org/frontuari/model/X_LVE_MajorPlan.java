@@ -34,7 +34,7 @@ public class X_LVE_MajorPlan extends PO implements I_LVE_MajorPlan, I_Persistent
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20180312L;
+	private static final long serialVersionUID = 20180317L;
 
     /** Standard Constructor */
     public X_LVE_MajorPlan (Properties ctx, int LVE_MajorPlan_ID, String trxName)
@@ -88,26 +88,6 @@ public class X_LVE_MajorPlan extends PO implements I_LVE_MajorPlan, I_Persistent
 	public BigDecimal getAmount () 
 	{
 		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_Amount);
-		if (bd == null)
-			 return Env.ZERO;
-		return bd;
-	}
-
-	/** Set Approval Amount.
-		@param AmtApproval 
-		The approval amount limit for this role
-	  */
-	public void setAmtApproval (BigDecimal AmtApproval)
-	{
-		set_Value (COLUMNNAME_AmtApproval, AmtApproval);
-	}
-
-	/** Get Approval Amount.
-		@return The approval amount limit for this role
-	  */
-	public BigDecimal getAmtApproval () 
-	{
-		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_AmtApproval);
 		if (bd == null)
 			 return Env.ZERO;
 		return bd;
@@ -291,23 +271,6 @@ public class X_LVE_MajorPlan extends PO implements I_LVE_MajorPlan, I_Persistent
     {
         return new KeyNamePair(get_ID(), getDocumentNo());
     }
-
-	/** Set Due Date.
-		@param DueDate 
-		Date when the payment is due
-	  */
-	public void setDueDate (Timestamp DueDate)
-	{
-		set_Value (COLUMNNAME_DueDate, DueDate);
-	}
-
-	/** Get Due Date.
-		@return Date when the payment is due
-	  */
-	public Timestamp getDueDate () 
-	{
-		return (Timestamp)get_Value(COLUMNNAME_DueDate);
-	}
 
 	/** Set Major Plan.
 		@param LVE_MajorPlan_ID Major Plan	  */

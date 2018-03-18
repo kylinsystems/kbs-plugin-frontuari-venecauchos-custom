@@ -123,6 +123,19 @@ public interface I_LVE_MajorPlanLine
 	  */
 	public int getCreatedBy();
 
+    /** Column name DueDate */
+    public static final String COLUMNNAME_DueDate = "DueDate";
+
+	/** Set Due Date.
+	  * Date when the payment is due
+	  */
+	public void setDueDate (Timestamp DueDate);
+
+	/** Get Due Date.
+	  * Date when the payment is due
+	  */
+	public Timestamp getDueDate();
+
     /** Column name InterestAmt */
     public static final String COLUMNNAME_InterestAmt = "InterestAmt";
 

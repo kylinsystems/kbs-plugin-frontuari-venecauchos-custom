@@ -32,7 +32,7 @@ public class X_LVE_MajorPlanType extends PO implements I_LVE_MajorPlanType, I_Pe
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20180312L;
+	private static final long serialVersionUID = 20180317L;
 
     /** Standard Constructor */
     public X_LVE_MajorPlanType (Properties ctx, int LVE_MajorPlanType_ID, String trxName)
@@ -70,6 +70,54 @@ public class X_LVE_MajorPlanType extends PO implements I_LVE_MajorPlanType, I_Pe
         .append(get_ID()).append("]");
       return sb.toString();
     }
+
+	/** Set Approval Amount.
+		@param AmtApproval 
+		The approval amount limit for this role
+	  */
+	public void setAmtApproval (BigDecimal AmtApproval)
+	{
+		set_Value (COLUMNNAME_AmtApproval, AmtApproval);
+	}
+
+	/** Get Approval Amount.
+		@return The approval amount limit for this role
+	  */
+	public BigDecimal getAmtApproval () 
+	{
+		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_AmtApproval);
+		if (bd == null)
+			 return Env.ZERO;
+		return bd;
+	}
+
+	public org.compiere.model.I_C_BankAccount getC_BankAccount() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_BankAccount)MTable.get(getCtx(), org.compiere.model.I_C_BankAccount.Table_Name)
+			.getPO(getC_BankAccount_ID(), get_TrxName());	}
+
+	/** Set Bank Account.
+		@param C_BankAccount_ID 
+		Account at the Bank
+	  */
+	public void setC_BankAccount_ID (int C_BankAccount_ID)
+	{
+		if (C_BankAccount_ID < 1) 
+			set_Value (COLUMNNAME_C_BankAccount_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_BankAccount_ID, Integer.valueOf(C_BankAccount_ID));
+	}
+
+	/** Get Bank Account.
+		@return Account at the Bank
+	  */
+	public int getC_BankAccount_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_BankAccount_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
 
 	public org.compiere.model.I_C_Bank getC_Bank() throws RuntimeException
     {
@@ -155,6 +203,90 @@ public class X_LVE_MajorPlanType extends PO implements I_LVE_MajorPlanType, I_Pe
 		return ii.intValue();
 	}
 
+	public org.compiere.model.I_C_DocType getC_DocType() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_DocType)MTable.get(getCtx(), org.compiere.model.I_C_DocType.Table_Name)
+			.getPO(getC_DocType_ID(), get_TrxName());	}
+
+	/** Set Document Type.
+		@param C_DocType_ID 
+		Document type or rules
+	  */
+	public void setC_DocType_ID (int C_DocType_ID)
+	{
+		if (C_DocType_ID < 0) 
+			set_Value (COLUMNNAME_C_DocType_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_DocType_ID, Integer.valueOf(C_DocType_ID));
+	}
+
+	/** Get Document Type.
+		@return Document type or rules
+	  */
+	public int getC_DocType_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_DocType_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.compiere.model.I_C_DocType getC_DocTypeTarget() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_DocType)MTable.get(getCtx(), org.compiere.model.I_C_DocType.Table_Name)
+			.getPO(getC_DocTypeTarget_ID(), get_TrxName());	}
+
+	/** Set Target Document Type.
+		@param C_DocTypeTarget_ID 
+		Target document type for conversing documents
+	  */
+	public void setC_DocTypeTarget_ID (int C_DocTypeTarget_ID)
+	{
+		if (C_DocTypeTarget_ID < 1) 
+			set_Value (COLUMNNAME_C_DocTypeTarget_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_DocTypeTarget_ID, Integer.valueOf(C_DocTypeTarget_ID));
+	}
+
+	/** Get Target Document Type.
+		@return Target document type for conversing documents
+	  */
+	public int getC_DocTypeTarget_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_DocTypeTarget_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.compiere.model.I_AD_Sequence getDocNoSequence() throws RuntimeException
+    {
+		return (org.compiere.model.I_AD_Sequence)MTable.get(getCtx(), org.compiere.model.I_AD_Sequence.Table_Name)
+			.getPO(getDocNoSequence_ID(), get_TrxName());	}
+
+	/** Set Document Sequence.
+		@param DocNoSequence_ID 
+		Document sequence determines the numbering of documents
+	  */
+	public void setDocNoSequence_ID (int DocNoSequence_ID)
+	{
+		if (DocNoSequence_ID < 1) 
+			set_Value (COLUMNNAME_DocNoSequence_ID, null);
+		else 
+			set_Value (COLUMNNAME_DocNoSequence_ID, Integer.valueOf(DocNoSequence_ID));
+	}
+
+	/** Get Document Sequence.
+		@return Document sequence determines the numbering of documents
+	  */
+	public int getDocNoSequence_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_DocNoSequence_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
 	/** Set Major Plan Type.
 		@param LVE_MajorPlanType_ID Major Plan Type	  */
 	public void setLVE_MajorPlanType_ID (int LVE_MajorPlanType_ID)
@@ -204,26 +336,6 @@ public class X_LVE_MajorPlanType extends PO implements I_LVE_MajorPlanType, I_Pe
 	public String getName () 
 	{
 		return (String)get_Value(COLUMNNAME_Name);
-	}
-
-	/** Set Rate.
-		@param Rate 
-		Rate or Tax or Exchange
-	  */
-	public void setRate (BigDecimal Rate)
-	{
-		set_Value (COLUMNNAME_Rate, Rate);
-	}
-
-	/** Get Rate.
-		@return Rate or Tax or Exchange
-	  */
-	public BigDecimal getRate () 
-	{
-		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_Rate);
-		if (bd == null)
-			 return Env.ZERO;
-		return bd;
 	}
 
 	/** Set Search Key.

@@ -5,17 +5,9 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 
-import org.adempiere.base.Core;
-import org.adempiere.exceptions.AdempiereException;
-import org.adempiere.model.ITaxProvider;
 import org.compiere.model.MInvoice;
-import org.compiere.model.MRole;
-import org.compiere.model.MTax;
-import org.compiere.model.MTaxProvider;
-import org.compiere.model.MUOM;
 import org.compiere.model.Query;
 import org.compiere.util.DB;
-import org.compiere.util.Env;
 import org.compiere.util.Msg;
 
 /**
@@ -63,7 +55,7 @@ public class MLVEMajorPlanLine extends X_LVE_MajorPlanLine {
 	 */
 	private MInvoice[] getInvoices (String whereClause)
 	{
-		String whereClauseFinal = "EXISTS (SELECT 1 FROM LVE_MajorPlanLine ON LVE_MajorPlanLine.C_Invoice_ID = C_Invoice.C_Invoice_ID WHERE LVE_MajorPlan_ID=?) ";
+		String whereClauseFinal = "EXISTS (SELECT 1 FROM LVE_MajorPlanLine WHERE LVE_MajorPlanLine.C_Invoice_ID = C_Invoice.C_Invoice_ID AND LVE_MajorPlan_ID=?) ";
 		if (whereClause != null)
 			whereClauseFinal += whereClause;
 		List<MInvoice> list = new Query(getCtx(), MInvoice.Table_Name, whereClauseFinal, get_TrxName())
@@ -115,6 +107,11 @@ public class MLVEMajorPlanLine extends X_LVE_MajorPlanLine {
 			int ii = DB.getSQLValue (get_TrxName(), sql, getLVE_MajorPlan_ID());
 			setLine (ii);
 		}
+		//	Set Header
+		if((!newRecord && is_ValueChanged(COLUMNNAME_Amount)) || newRecord){
+			getParent().setAmount(getParent().getAmount().add(getAmount()));
+			getParent().saveEx();
+		}
 		
 		return true;
 	}	//	beforeSave
@@ -129,10 +126,14 @@ public class MLVEMajorPlanLine extends X_LVE_MajorPlanLine {
 	{
 		if (!success)
 			return success;
+		if (getParent().isProcessed())
+			return success;
 		
 		//	Update Parent Amount
-		getParent().setAmount(getParent().getAmount().add(getLineNetAmt()));
-		getParent().saveEx();
+		if(is_ValueChanged(COLUMNNAME_Amount)){
+			getParent().setAmount(getParent().getAmount().add(getAmount()));
+			getParent().saveEx();
+		}
 				
     	return true;
 	}	//	afterSave
@@ -145,7 +146,7 @@ public class MLVEMajorPlanLine extends X_LVE_MajorPlanLine {
 	protected boolean beforeDelete ()
 	{
 		//	Update Parent Amount
-		getParent().setAmount(getParent().getAmount().subtract(getLineNetAmt()));
+		getParent().setAmount(getParent().getAmount().subtract(getAmount()));
 		getParent().saveEx();
 				
     	return true;

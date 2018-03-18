@@ -17,10 +17,12 @@
 /** Generated Model - DO NOT CHANGE */
 package org.frontuari.model;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.Properties;
 import org.compiere.model.*;
+import org.compiere.util.Env;
 
 /** Generated Model for LVE_MajorPlanTypeLine
  *  @author iDempiere (generated) 
@@ -31,7 +33,7 @@ public class X_LVE_MajorPlanTypeLine extends PO implements I_LVE_MajorPlanTypeLi
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20180312L;
+	private static final long serialVersionUID = 20180317L;
 
     /** Standard Constructor */
     public X_LVE_MajorPlanTypeLine (Properties ctx, int LVE_MajorPlanTypeLine_ID, String trxName)
@@ -100,6 +102,54 @@ public class X_LVE_MajorPlanTypeLine extends PO implements I_LVE_MajorPlanTypeLi
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	public org.compiere.model.I_C_PaymentTerm getC_PaymentTerm() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_PaymentTerm)MTable.get(getCtx(), org.compiere.model.I_C_PaymentTerm.Table_Name)
+			.getPO(getC_PaymentTerm_ID(), get_TrxName());	}
+
+	/** Set Payment Term.
+		@param C_PaymentTerm_ID 
+		The terms of Payment (timing, discount)
+	  */
+	public void setC_PaymentTerm_ID (int C_PaymentTerm_ID)
+	{
+		if (C_PaymentTerm_ID < 1) 
+			set_Value (COLUMNNAME_C_PaymentTerm_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_PaymentTerm_ID, Integer.valueOf(C_PaymentTerm_ID));
+	}
+
+	/** Get Payment Term.
+		@return The terms of Payment (timing, discount)
+	  */
+	public int getC_PaymentTerm_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_PaymentTerm_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** Set Interest in percent.
+		@param InterestPercent 
+		Percentage interest to charge on overdue invoices
+	  */
+	public void setInterestPercent (BigDecimal InterestPercent)
+	{
+		set_Value (COLUMNNAME_InterestPercent, InterestPercent);
+	}
+
+	/** Get Interest in percent.
+		@return Percentage interest to charge on overdue invoices
+	  */
+	public BigDecimal getInterestPercent () 
+	{
+		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_InterestPercent);
+		if (bd == null)
+			 return Env.ZERO;
+		return bd;
 	}
 
 	public org.frontuari.model.I_LVE_MajorPlanType getLVE_MajorPlanType() throws RuntimeException

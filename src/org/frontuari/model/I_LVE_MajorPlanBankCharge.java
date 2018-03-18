@@ -21,18 +21,18 @@ import java.sql.Timestamp;
 import org.compiere.model.*;
 import org.compiere.util.KeyNamePair;
 
-/** Generated Interface for LVE_MajorPlanType
+/** Generated Interface for LVE_MajorPlanBankCharge
  *  @author iDempiere (generated) 
  *  @version Release 4.1
  */
 @SuppressWarnings("all")
-public interface I_LVE_MajorPlanType 
+public interface I_LVE_MajorPlanBankCharge 
 {
 
-    /** TableName=LVE_MajorPlanType */
-    public static final String Table_Name = "LVE_MajorPlanType";
+    /** TableName=LVE_MajorPlanBankCharge */
+    public static final String Table_Name = "LVE_MajorPlanBankCharge";
 
-    /** AD_Table_ID=1000036 */
+    /** AD_Table_ID=1000039 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -64,64 +64,6 @@ public interface I_LVE_MajorPlanType
 	  */
 	public int getAD_Org_ID();
 
-    /** Column name AmtApproval */
-    public static final String COLUMNNAME_AmtApproval = "AmtApproval";
-
-	/** Set Approval Amount.
-	  * The approval amount limit for this role
-	  */
-	public void setAmtApproval (BigDecimal AmtApproval);
-
-	/** Get Approval Amount.
-	  * The approval amount limit for this role
-	  */
-	public BigDecimal getAmtApproval();
-
-    /** Column name C_BankAccount_ID */
-    public static final String COLUMNNAME_C_BankAccount_ID = "C_BankAccount_ID";
-
-	/** Set Bank Account.
-	  * Account at the Bank
-	  */
-	public void setC_BankAccount_ID (int C_BankAccount_ID);
-
-	/** Get Bank Account.
-	  * Account at the Bank
-	  */
-	public int getC_BankAccount_ID();
-
-	public org.compiere.model.I_C_BankAccount getC_BankAccount() throws RuntimeException;
-
-    /** Column name C_Bank_ID */
-    public static final String COLUMNNAME_C_Bank_ID = "C_Bank_ID";
-
-	/** Set Bank.
-	  * Bank
-	  */
-	public void setC_Bank_ID (int C_Bank_ID);
-
-	/** Get Bank.
-	  * Bank
-	  */
-	public int getC_Bank_ID();
-
-	public org.compiere.model.I_C_Bank getC_Bank() throws RuntimeException;
-
-    /** Column name C_BPartner_ID */
-    public static final String COLUMNNAME_C_BPartner_ID = "C_BPartner_ID";
-
-	/** Set Business Partner .
-	  * Identifies a Business Partner
-	  */
-	public void setC_BPartner_ID (int C_BPartner_ID);
-
-	/** Get Business Partner .
-	  * Identifies a Business Partner
-	  */
-	public int getC_BPartner_ID();
-
-	public org.compiere.model.I_C_BPartner getC_BPartner() throws RuntimeException;
-
     /** Column name C_Charge_ID */
     public static final String COLUMNNAME_C_Charge_ID = "C_Charge_ID";
 
@@ -152,21 +94,6 @@ public interface I_LVE_MajorPlanType
 
 	public org.compiere.model.I_C_DocType getC_DocType() throws RuntimeException;
 
-    /** Column name C_DocTypeTarget_ID */
-    public static final String COLUMNNAME_C_DocTypeTarget_ID = "C_DocTypeTarget_ID";
-
-	/** Set Target Document Type.
-	  * Target document type for conversing documents
-	  */
-	public void setC_DocTypeTarget_ID (int C_DocTypeTarget_ID);
-
-	/** Get Target Document Type.
-	  * Target document type for conversing documents
-	  */
-	public int getC_DocTypeTarget_ID();
-
-	public org.compiere.model.I_C_DocType getC_DocTypeTarget() throws RuntimeException;
-
     /** Column name Created */
     public static final String COLUMNNAME_Created = "Created";
 
@@ -183,21 +110,6 @@ public interface I_LVE_MajorPlanType
 	  */
 	public int getCreatedBy();
 
-    /** Column name DocNoSequence_ID */
-    public static final String COLUMNNAME_DocNoSequence_ID = "DocNoSequence_ID";
-
-	/** Set Document Sequence.
-	  * Document sequence determines the numbering of documents
-	  */
-	public void setDocNoSequence_ID (int DocNoSequence_ID);
-
-	/** Get Document Sequence.
-	  * Document sequence determines the numbering of documents
-	  */
-	public int getDocNoSequence_ID();
-
-	public org.compiere.model.I_AD_Sequence getDocNoSequence() throws RuntimeException;
-
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
 
@@ -211,6 +123,24 @@ public interface I_LVE_MajorPlanType
 	  */
 	public boolean isActive();
 
+    /** Column name LVE_MajorPlanBankCharge_ID */
+    public static final String COLUMNNAME_LVE_MajorPlanBankCharge_ID = "LVE_MajorPlanBankCharge_ID";
+
+	/** Set Major Plan Bank Charge	  */
+	public void setLVE_MajorPlanBankCharge_ID (int LVE_MajorPlanBankCharge_ID);
+
+	/** Get Major Plan Bank Charge	  */
+	public int getLVE_MajorPlanBankCharge_ID();
+
+    /** Column name LVE_MajorPlanBankCharge_UU */
+    public static final String COLUMNNAME_LVE_MajorPlanBankCharge_UU = "LVE_MajorPlanBankCharge_UU";
+
+	/** Set LVE_MajorPlanBankCharge_UU	  */
+	public void setLVE_MajorPlanBankCharge_UU (String LVE_MajorPlanBankCharge_UU);
+
+	/** Get LVE_MajorPlanBankCharge_UU	  */
+	public String getLVE_MajorPlanBankCharge_UU();
+
     /** Column name LVE_MajorPlanType_ID */
     public static final String COLUMNNAME_LVE_MajorPlanType_ID = "LVE_MajorPlanType_ID";
 
@@ -220,14 +150,7 @@ public interface I_LVE_MajorPlanType
 	/** Get Major Plan Type	  */
 	public int getLVE_MajorPlanType_ID();
 
-    /** Column name LVE_MajorPlanType_UU */
-    public static final String COLUMNNAME_LVE_MajorPlanType_UU = "LVE_MajorPlanType_UU";
-
-	/** Set LVE_MajorPlanType_UU	  */
-	public void setLVE_MajorPlanType_UU (String LVE_MajorPlanType_UU);
-
-	/** Get LVE_MajorPlanType_UU	  */
-	public String getLVE_MajorPlanType_UU();
+	public org.frontuari.model.I_LVE_MajorPlanType getLVE_MajorPlanType() throws RuntimeException;
 
     /** Column name Name */
     public static final String COLUMNNAME_Name = "Name";
@@ -241,6 +164,19 @@ public interface I_LVE_MajorPlanType
 	  * Alphanumeric identifier of the entity
 	  */
 	public String getName();
+
+    /** Column name Rate */
+    public static final String COLUMNNAME_Rate = "Rate";
+
+	/** Set Rate.
+	  * Rate or Tax or Exchange
+	  */
+	public void setRate (BigDecimal Rate);
+
+	/** Get Rate.
+	  * Rate or Tax or Exchange
+	  */
+	public BigDecimal getRate();
 
     /** Column name Updated */
     public static final String COLUMNNAME_Updated = "Updated";
@@ -257,17 +193,4 @@ public interface I_LVE_MajorPlanType
 	  * User who updated this records
 	  */
 	public int getUpdatedBy();
-
-    /** Column name Value */
-    public static final String COLUMNNAME_Value = "Value";
-
-	/** Set Search Key.
-	  * Search key for the record in the format required - must be unique
-	  */
-	public void setValue (String Value);
-
-	/** Get Search Key.
-	  * Search key for the record in the format required - must be unique
-	  */
-	public String getValue();
 }

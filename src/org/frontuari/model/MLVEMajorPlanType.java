@@ -62,4 +62,46 @@ public class MLVEMajorPlanType extends X_LVE_MajorPlanType {
 	{
 		return getLines(false);
 	}	//	getLines
+	
+	/**	Major Plan Bank Charges			*/
+	private MLVEMajorPlanBankCharge[]	m_bankcharges;
+
+	/**
+	 * 	Get Major Plan Lines of Major Plan
+	 * 	@param whereClause starting with AND
+	 * 	@return lines
+	 */
+	private MLVEMajorPlanBankCharge[] getBankCharges (String whereClause)
+	{
+		String whereClauseFinal = "LVE_MajorPlanType_ID=? ";
+		if (whereClause != null)
+			whereClauseFinal += whereClause;
+		List<MLVEMajorPlanBankCharge> list = new Query(getCtx(), I_LVE_MajorPlanBankCharge.Table_Name, whereClauseFinal, get_TrxName())
+										.setParameters(getLVE_MajorPlanType_ID())
+										.setOrderBy(I_LVE_MajorPlanBankCharge.COLUMNNAME_Name)
+										.list();
+		return list.toArray(new MLVEMajorPlanBankCharge[list.size()]);
+	}	//	getLines
+
+	/**
+	 * 	Get Major Plan Lines
+	 * 	@param requery
+	 * 	@return lines
+	 */
+	public MLVEMajorPlanBankCharge[] getBankCharges (boolean requery)
+	{
+		if (m_bankcharges == null || m_bankcharges.length == 0 || requery)
+			m_bankcharges = getBankCharges(null);
+		set_TrxName(m_bankcharges, get_TrxName());
+		return m_bankcharges;
+	}	//	getLines
+
+	/**
+	 * 	Get Lines of Invoice
+	 * 	@return lines
+	 */
+	public MLVEMajorPlanBankCharge[] getBankCharges()
+	{
+		return getBankCharges(false);
+	}	//	getLines
 }

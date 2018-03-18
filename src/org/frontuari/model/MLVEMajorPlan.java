@@ -2,21 +2,31 @@ package org.frontuari.model;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 
+import org.adempiere.exceptions.AdempiereException;
+import org.compiere.model.MInvoice;
 import org.compiere.model.MPayment;
+import org.compiere.model.MPaymentAllocate;
+import org.compiere.model.MSequence;
 import org.compiere.model.ModelValidationEngine;
 import org.compiere.model.ModelValidator;
 import org.compiere.model.Query;
+import org.compiere.print.MPrintFormat;
+import org.compiere.print.ReportEngine;
 import org.compiere.process.DocAction;
 import org.compiere.process.DocOptions;
 import org.compiere.process.DocumentEngine;
+import org.compiere.process.ProcessInfo;
+import org.compiere.process.ServerProcessCtl;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
+import org.compiere.util.Msg;
 
 /**
  *	Major Plan Model.
@@ -49,6 +59,11 @@ public class MLVEMajorPlan extends X_LVE_MajorPlan implements DocAction,DocOptio
 		super(ctx, rs, trxName);
 	}
 	
+	/**
+	 * get DocNo from Secuence
+	 */
+	
+	
 	/**	Major Plan Lines			*/
 	private MLVEMajorPlanLine[]	m_lines;
 
@@ -57,7 +72,7 @@ public class MLVEMajorPlan extends X_LVE_MajorPlan implements DocAction,DocOptio
 	 * 	@param whereClause starting with AND
 	 * 	@return lines
 	 */
-	private MLVEMajorPlanLine[] getLines (String whereClause)
+	public MLVEMajorPlanLine[] getLines (String whereClause)
 	{
 		String whereClauseFinal = "LVE_MajorPlan_ID=? ";
 		if (whereClause != null)
@@ -90,6 +105,48 @@ public class MLVEMajorPlan extends X_LVE_MajorPlan implements DocAction,DocOptio
 	{
 		return getLines(false);
 	}	//	getLines
+	
+	/**	Major Plan Pay Bank Charges Allocated			*/
+	private MPayment[]	m_payment;
+
+	/**
+	 * 	Get Pays Bank Charges of Major Plan
+	 * 	@param whereClause starting with AND
+	 * 	@return lines
+	 */
+	private MPayment[] getBCAllocated (String whereClause)
+	{
+		String whereClauseFinal = "C_Charge_ID IS NOT NULL AND LVE_MajorPlan_ID IS NOT NULL AND EXISTS (SELECT 1 FROM LVE_MajorPlan WHERE LVE_MajorPlan.LVE_MajorPlan_ID = C_Payment.LVE_MajorPlan_ID AND LVE_MajorPlan.LVE_MajorPlan_ID=?) ";
+		if (whereClause != null)
+			whereClauseFinal += whereClause;
+		List<MInvoice> list = new Query(getCtx(), MPayment.Table_Name, whereClauseFinal, get_TrxName())
+										.setParameters(getLVE_MajorPlan_ID())
+										.setOrderBy(MPayment.COLUMNNAME_DocumentNo)
+										.list();
+		return list.toArray(new MPayment[list.size()]);
+	}	//	getBCAllocated
+
+	/**
+	 * 	Get Pays Bank Charges
+	 * 	@param requery
+	 * 	@return lines
+	 */
+	public MPayment[] getBCAllocated (boolean requery)
+	{
+		if (m_payment == null || m_payment.length == 0 || requery)
+			m_payment = getBCAllocated(null);
+		set_TrxName(m_payment, get_TrxName());
+		return m_payment;
+	}	//	getBCAllocated
+
+	/**
+	 * 	Get Pays Bank Charges
+	 * 	@return lines
+	 */
+	public MPayment[] getBCAllocated()
+	{
+		return getBCAllocated(false);
+	}	//	getBCAllocated
 	
 	/**
 	 * 	Set Processed.
@@ -126,6 +183,37 @@ public class MLVEMajorPlan extends X_LVE_MajorPlan implements DocAction,DocOptio
 		return sb.toString ();
 	}	//	toString
 
+	/**************************************************************************
+	 * 	Before Save
+	 *	@param newRecord new
+	 *	@return save
+	 */
+	protected boolean beforeSave (boolean newRecord)
+	{
+		//	Client/Org Check
+		if (getAD_Org_ID() == 0)
+		{
+			int context_AD_Org_ID = Env.getAD_Org_ID(getCtx());
+			if (context_AD_Org_ID != 0)
+			{
+				setAD_Org_ID(context_AD_Org_ID);
+				log.warning("Changed Org to Context=" + context_AD_Org_ID);
+			}
+		}
+		if (getAD_Client_ID() == 0)
+		{
+			m_processMsg = "AD_Client_ID = 0";
+			return false;
+		}
+		//	Set definitive sequence
+		if(getDocumentNo().contains("<") && getDocumentNo().contains(">")){
+			MSequence seq = new MSequence(getCtx(), getLVE_MajorPlanType().getDocNoSequence_ID(), get_TrxName());
+			setDocumentNo(MSequence.getDocumentNoFromSeq(seq, get_TrxName(), null));
+		}
+
+		return true;
+	}	//	beforeSave
+	
 	/**
 	 * 	After Save
 	 *	@param newRecord new
@@ -149,6 +237,24 @@ public class MLVEMajorPlan extends X_LVE_MajorPlan implements DocAction,DocOptio
 		}
 		return true;
 	}	//	afterSave
+	
+	/**
+	 * Before Delete
+	 * @author Jorge Colmenarez,jcolmenarez@frontuari.com, http://www.frontuari.com
+	 * @return success 
+	 */
+	protected boolean beforeDelete ()
+	{
+		if (isProcessed()) {
+			log.saveError("Error", Msg.getMsg(getCtx(), "CannotDeleteTrx"));
+			return false;
+		}
+
+		for (MLVEMajorPlanLine line : getLines(null)) {
+			line.deleteEx(true);
+		}
+		return true;
+	}	// beforeDelete
 	
 	/**************************************************************************
 	 * 	Process document
@@ -203,8 +309,12 @@ public class MLVEMajorPlan extends X_LVE_MajorPlan implements DocAction,DocOptio
 			for (int i = 0; i < lines.length; i++)
 			{
 				MLVEMajorPlanLine line = lines[i];
-				MLVEMajorPlanType mpt = new MLVEMajorPlanType(getCtx(), line.getLVE_MajorPlan().getLVE_MajorPlanType_ID(), get_TrxName());
-				BigDecimal interestAmt = line.getAmount().multiply(mpt.getRate().divide(new BigDecimal(100)));
+				String sql = "SELECT ROUND((COALESCE(mptl.InterestPercent,0) / 100),2) AS rate "
+						+ "FROM LVE_MajorPlanTypeLine mptl "
+						+ "INNER JOIN C_Invoice i ON mptl.C_BPartner_ID = i.C_BPartner_ID "
+						+ "WHERE mptl.LVE_MajorPlanType_ID = ? AND i.C_Invoice_ID = ? ";
+				BigDecimal rate = DB.getSQLValueBD(get_TrxName(), sql, getLVE_MajorPlanType_ID(),line.getC_Invoice_ID());
+				BigDecimal interestAmt = line.getAmount().multiply(rate);
 				BigDecimal lineNetAmt = line.getAmount().add(interestAmt);
 				line.setInterestAmt(interestAmt);
 				line.setLineNetAmt(lineNetAmt);
@@ -212,8 +322,13 @@ public class MLVEMajorPlan extends X_LVE_MajorPlan implements DocAction,DocOptio
 			}	//	for all lines
 		}
 		
-		//	Check that not exceeded approval amt 
-		if(getAmount().compareTo(getAmtApproval()) > 0){
+		//	Check that not exceeded approval amt
+		String sql = "SELECT MAX(mpt.AmtApproval)-SUM(mp.Amount) AS AmtAvailable "
+				+ "FROM LVE_MajorPlanType mpt "
+				+ "INNER JOIN LVE_MajorPlan mp ON mpt.LVE_MajorPlanType_ID = mp.LVE_MajorPlanType_ID "
+				+ "WHERE mp.LVE_MajorPlanType_ID = ? AND (mp.DocStatus IN ('CO','CL') OR mp.LVE_MajorPlan_ID = ?)";
+		BigDecimal amtAvailable = DB.getSQLValueBD(get_TrxName(), sql, getLVE_MajorPlanType_ID(), getLVE_MajorPlan_ID());
+		if(getAmount().compareTo(amtAvailable) > 0){
 			m_processMsg = "@majorplan.creditamt.exceeded@";
 			return DocAction.STATUS_Invalid;
 		}
@@ -249,16 +364,51 @@ public class MLVEMajorPlan extends X_LVE_MajorPlan implements DocAction,DocOptio
 			return DocAction.STATUS_Invalid;
 		
 		if (log.isLoggable(Level.INFO)) log.info(toString());
+		StringBuilder info = new StringBuilder();
+		
+		//	Create Bank Movements
+		String sql = "SELECT mptl.C_BPartner_ID,i.Amount "
+				+ "FROM LVE_MajorPlanTypeLine mptl "
+				+ "INNER JOIN LVE_MajorPlan mp ON mptl.LVE_MajorPlanType_ID = mp.LVE_MajorPlanType_ID "
+				+ "INNER JOIN (SELECT mpl.LVE_MajorPlan_ID,i.C_BPartner_ID,SUM(Amount) AS Amount "
+				+ "FROM LVE_MajorPlanLine mpl "
+				+ "INNER JOIN C_Invoice i ON mpl.C_Invoice_ID = i.C_Invoice_ID "
+				+ "GROUP BY mpl.LVE_MajorPlan_ID,i.C_BPartner_ID) i ON i.LVE_MajorPlan_ID = mp.LVE_MajorPlan_ID AND i.C_BPartner_ID = mptl.C_BPartner_ID "
+				+ "WHERE mp.LVE_MajorPlan_ID = ?";
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		try
+		{
+			pstmt = DB.prepareStatement(sql, get_TrxName());
+			pstmt.setInt(1, getLVE_MajorPlan_ID());
+			rs = pstmt.executeQuery();
+			while (rs.next())
+			{
+				//	Create Receipt by BPartner
+				createReceipt(rs.getBigDecimal("Amount"),info);
+				//	Create Payment by BPartner
+				createPayment(rs.getInt("C_BPartner_ID"),rs.getBigDecimal("Amount"),info);
+				//	Create Bank Charges
+				createBankCharge(rs.getBigDecimal("Amount"),info);
+			}
+		}
+		catch(Exception e){
+			throw new AdempiereException(e);
+		}
 
 		//	User Validation
 		String valid = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_COMPLETE);
 		if (valid != null)
 		{
-			m_processMsg = valid;
+			if (info.length() > 0)
+				info.append(" - ");
+			info.append(valid);
+			m_processMsg = info.toString();
 			return DocAction.STATUS_Invalid;
 		}
 
 		setProcessed(true);
+		m_processMsg = info.toString();
 		setDocAction(DOCACTION_Close);
 		return DocAction.STATUS_Completed;
 	}	//	completeIt
@@ -298,34 +448,29 @@ public class MLVEMajorPlan extends X_LVE_MajorPlan implements DocAction,DocOptio
 			{
 				MLVEMajorPlanLine line = lines[i];
 				line.setAmount(Env.ZERO);
-				line.setInterestAmt(Env.ZERO);
-				line.setLineNetAmt(Env.ZERO);
-				line.setIsPaid(false);
-				line.setPayDate(null);
-
-				//	Verified if have payment
-				if(line.getC_Payment_ID() != 0){
-					MPayment pay = new MPayment(getCtx(), line.getC_Payment_ID(), get_TrxName());
-					if(pay.getDocStatus().equals(MPayment.DOCSTATUS_Completed)){
-						if(pay.reverseCorrectIt()){
-							pay.addDescription("@Voided@ @from@ @LVE_MajorPlan_ID@: "+getDocumentNo());
-							pay.saveEx();
-						}
-					}
-					line.setC_Payment_ID(0);
-				}
 				line.saveEx(get_TrxName());
 			}
 			setC_Payment_ID(0);
 			setAmount(BigDecimal.ZERO);
 		}
-		else{
+		else{			
 			//	Verified if have payment
 			if(getC_Payment_ID() != 0){
 				MPayment pay = new MPayment(getCtx(), getC_Payment_ID(), get_TrxName());
 				if(pay.reverseCorrectIt()){
-					pay.addDescription("@Voided@ @from@ @LVE_MajorPlan_ID@: "+getDocumentNo());
-					pay.saveEx();
+					pay.addDescription(Msg.translate(getCtx(),"Voided")+" "+Msg.translate(getCtx(),"from")+" "+Msg.translate(getCtx(),"LVE_MajorPlan_ID")+": "+getDocumentNo());
+					pay.saveEx(get_TrxName());
+				}
+			}
+
+			//	Check if have bank charges allocated
+			MPayment[] pays = getBCAllocated(" AND DocStatus IN ('CO','CL')");
+			if(pays.length > 0){
+				for(MPayment payBC : pays){
+					if(payBC.reverseCorrectIt()){
+						payBC.addDescription(Msg.translate(getCtx(),"Voided")+" "+Msg.translate(getCtx(),"from")+" "+Msg.translate(getCtx(),"LVE_MajorPlan_ID")+": "+getDocumentNo());
+						payBC.saveEx(get_TrxName());
+					}
 				}
 			}
 			
@@ -341,15 +486,18 @@ public class MLVEMajorPlan extends X_LVE_MajorPlan implements DocAction,DocOptio
 				line.setPayDate(null);
 
 				//	Verified if have payment
-				if(line.getC_Payment_ID() != 0){
-					MPayment pay = new MPayment(getCtx(), line.getC_Payment_ID(), get_TrxName());
-					if(pay.getDocStatus().equals(MPayment.DOCSTATUS_Completed)){
-						if(pay.reverseCorrectIt()){
-							pay.addDescription("@Voided@ @from@ @LVE_MajorPlan_ID@: "+getDocumentNo());
-							pay.saveEx();
+				String sql = "SELECT pa.C_Payment_ID FROM C_PaymentAllocate pa "
+						+ "INNER JOIN C_Payment p ON pa.C_Payment_ID = p.C_Payment_ID "
+						+ "WHERE pa.C_Invoice_ID = ? AND p.LVE_MajorPlan_ID = ?";
+				int PayID = DB.getSQLValue(get_TrxName(), sql, line.getC_Invoice_ID(), getLVE_MajorPlan_ID());
+				if(PayID != 0){
+					MPayment payInv = new MPayment(getCtx(), PayID, get_TrxName());
+					if(payInv.getDocStatus().equals(MPayment.DOCSTATUS_Completed)){
+						if(payInv.reverseCorrectIt()){
+							payInv.addDescription(Msg.translate(getCtx(),"Voided")+" "+Msg.translate(getCtx(),"from")+" "+Msg.translate(getCtx(),"LVE_MajorPlan_ID")+": "+getDocumentNo());
+							payInv.saveEx(get_TrxName());
 						}
 					}
-					line.setC_Payment_ID(0);
 				}
 				line.saveEx(get_TrxName());
 			}
@@ -383,8 +531,19 @@ public class MLVEMajorPlan extends X_LVE_MajorPlan implements DocAction,DocOptio
 		if(getC_Payment_ID() != 0){
 			MPayment pay = new MPayment(getCtx(), getC_Payment_ID(), get_TrxName());
 			if(pay.reverseCorrectIt()){
-				pay.addDescription("@Voided@ @from@ @LVE_MajorPlan_ID@: "+getDocumentNo());
-				pay.saveEx();
+				pay.addDescription(Msg.translate(getCtx(),"Voided")+" "+Msg.translate(getCtx(),"from")+" "+Msg.translate(getCtx(),"LVE_MajorPlan_ID")+": "+getDocumentNo());
+				pay.saveEx(get_TrxName());
+			}
+		}
+		
+		//	Check if have bank charges allocated
+		MPayment[] pays = getBCAllocated(" AND DocStatus IN ('CO','CL')");
+		if(pays.length > 0){
+			for(MPayment payBC : pays){
+				if(payBC.reverseCorrectIt()){
+					payBC.addDescription(Msg.translate(getCtx(),"Voided")+" "+Msg.translate(getCtx(),"from")+" "+Msg.translate(getCtx(),"LVE_MajorPlan_ID")+": "+getDocumentNo());
+					payBC.saveEx(get_TrxName());
+				}
 			}
 		}
 		
@@ -395,17 +554,21 @@ public class MLVEMajorPlan extends X_LVE_MajorPlan implements DocAction,DocOptio
 			MLVEMajorPlanLine line = lines[i];
 			line.setIsPaid(false);
 			line.setPayDate(null);
+			line.setProcessed(false);
 
 			//	Verified if have payment
-			if(line.getC_Payment_ID() != 0){
-				MPayment pay = new MPayment(getCtx(), line.getC_Payment_ID(), get_TrxName());
-				if(pay.getDocStatus().equals(MPayment.DOCSTATUS_Completed)){
-					if(pay.reverseCorrectIt()){
-						pay.addDescription("@Voided@ @from@ @LVE_MajorPlan_ID@: "+getDocumentNo());
-						pay.saveEx();
+			String sql = "SELECT pa.C_Payment_ID FROM C_PaymentAllocate pa "
+					+ "INNER JOIN C_Payment p ON pa.C_Payment_ID = p.C_Payment_ID "
+					+ "WHERE pa.C_Invoice_ID = ? AND p.LVE_MajorPlan_ID = ?";
+			int PayID = DB.getSQLValue(get_TrxName(), sql, line.getC_Invoice_ID(), getLVE_MajorPlan_ID());
+			if(PayID != 0){
+				MPayment payInv = new MPayment(getCtx(), PayID, get_TrxName());
+				if(payInv.getDocStatus().equals(MPayment.DOCSTATUS_Completed)){
+					if(payInv.reverseCorrectIt()){
+						payInv.addDescription(Msg.translate(getCtx(),"Voided")+" "+Msg.translate(getCtx(),"from")+" "+Msg.translate(getCtx(),"LVE_MajorPlan_ID")+": "+getDocumentNo());
+						payInv.saveEx(get_TrxName());
 					}
 				}
-				line.setC_Payment_ID(0);
 			}
 			line.saveEx(get_TrxName());
 		}
@@ -510,8 +673,45 @@ public class MLVEMajorPlan extends X_LVE_MajorPlan implements DocAction,DocOptio
 
 	@Override
 	public File createPDF() {
+		try
+		{
+			File temp = File.createTempFile(get_TableName()+get_ID()+"_", ".pdf");
+			return createPDF (temp);
+		}
+		catch (Exception e)
+		{
+			log.severe("Could not create PDF - " + e.getMessage());
+		}
 		return null;
 	}
+	
+	/**
+	 * 	Create PDF file
+	 *	@param file output file
+	 *	@return file if success
+	 */
+	public File createPDF (File file)
+	{
+		ReportEngine re = ReportEngine.get (getCtx(), ReportEngine.ORDER, getLVE_MajorPlan_ID(), get_TrxName());
+		if (re == null)
+			return null;
+		MPrintFormat format = re.getPrintFormat();
+		// We have a Jasper Print Format
+		// ==============================
+		if(format.getJasperProcess_ID() > 0)
+		{
+			ProcessInfo pi = new ProcessInfo ("", format.getJasperProcess_ID());
+			pi.setRecord_ID ( getLVE_MajorPlan_ID() );
+			pi.setIsBatch(true);
+			
+			ServerProcessCtl.process(pi, null);
+			
+			return pi.getPDFReport();
+		}
+		// Standard Print Format (Non-Jasper)
+		// ==================================
+		return re.getPDF(file);
+	}	//	createPDF
 
 	@Override
 	public int getDoc_User_ID() {
@@ -539,17 +739,139 @@ public class MLVEMajorPlan extends X_LVE_MajorPlan implements DocAction,DocOptio
 
 		// If a document is drafted or invalid, the users are able to complete, prepare or void
 		if (docStatus.equals(DocumentEngine.STATUS_Drafted) || docStatus.equals(DocumentEngine.STATUS_Invalid)) {
-			options[index++] = DocumentEngine.ACTION_Complete;
 			options[index++] = DocumentEngine.ACTION_Prepare;
-			options[index++] = DocumentEngine.ACTION_Void;
 
 			// If the document is already completed, we also want to be able to reactivate or void it instead of only closing it
 		} else if (docStatus.equals(DocumentEngine.STATUS_Completed)) {
-			options[index++] = DocumentEngine.ACTION_Void;
 			options[index++] = DocumentEngine.ACTION_ReActivate;
+			options[index++] = DocumentEngine.ACTION_Void;
 		}
 
 		return index;
 	}
-
+	/**
+	 * Create receipt from Major Plan
+	 * @author Jorge Colmenarez,jcolmenarez@frontuari.com,http://www.frontuari.com
+	 * @param info 
+	 * @param ReceiptAmt
+	 * @return Receipt
+	 */
+	private void createReceipt(BigDecimal receiptAmt, StringBuilder info){
+		try{
+			MPayment receipt = new MPayment(getCtx(), 0, get_TrxName());
+			receipt.setAD_Org_ID(getAD_Org_ID());
+			receipt.setDateTrx(getDateDoc());
+			receipt.setDateAcct(getDateDoc());
+			receipt.setIsReceipt(true);
+			receipt.setC_Currency_ID(Env.getContextAsInt(getCtx(), "$C_Currency_ID"));
+			receipt.setC_DocType_ID(getLVE_MajorPlanType().getC_DocType_ID());
+			receipt.setC_BankAccount_ID(getLVE_MajorPlanType().getC_BankAccount_ID());
+			receipt.setC_Charge_ID(getLVE_MajorPlanType().getC_Charge_ID());
+			receipt.setC_BPartner_ID(getLVE_MajorPlanType().getC_BPartner_ID());
+			receipt.setTenderType(MPayment.TENDERTYPE_Account);
+			receipt.setPayAmt(receiptAmt);
+			receipt.processIt(MPayment.ACTION_Complete);
+			receipt.saveEx(get_TrxName());
+			//	Set Receipt into Major Plan Header
+			setC_Payment_ID(receipt.getC_Payment_ID());
+			saveEx(get_TrxName());
+			log.info("["+Msg.translate(getCtx(), "C_DocType_ID")+" => "+receipt.getC_DocType().getName()+" "+Msg.translate(getCtx(), "DocumentNo") + " : " +receipt.getDocumentNo()+"] \n");
+			info.append("@C_Payment_ID@: ").append(receipt.getDocumentNo());
+			String msg = receipt.getProcessMsg();
+			if (msg != null && msg.length() > 0)
+				info.append(" (").append(msg).append(")");
+		}
+		catch(Exception e){
+			throw new AdempiereException(e);
+		}
+	}//	createReceipt
+	
+	/**
+	 * Create vendor payment from Major Plan
+	 * @author Jorge Colmenarez,jcolmenarez@frontuari.com, http://www.frontuari.com
+	 * @param info 
+	 * @param PayAmt
+	 * @return Payment 
+	 */
+	private void createPayment(int BPartner_ID,BigDecimal payAmt, StringBuilder info){
+		//	Create Vendor Payment
+		MPayment pay = new MPayment(getCtx(), 0, get_TrxName());
+		pay.setAD_Org_ID(getAD_Org_ID());
+		pay.setDateTrx(getDateDoc());
+		pay.setDateAcct(getDateDoc());
+		pay.setIsReceipt(false);
+		pay.setC_Currency_ID(Env.getContextAsInt(getCtx(), "$C_Currency_ID"));
+		pay.setC_DocType_ID(getLVE_MajorPlanType().getC_DocTypeTarget_ID());
+		pay.setC_BankAccount_ID(getLVE_MajorPlanType().getC_BankAccount_ID());
+		pay.setC_BPartner_ID(BPartner_ID);
+		pay.setTenderType(MPayment.TENDERTYPE_Account);
+		pay.setPayAmt(payAmt);
+		//	Set Major Plan Reference
+		pay.set_ValueOfColumn("LVE_MajorPlan_ID", getLVE_MajorPlan_ID());
+		pay.saveEx(get_TrxName());
+		//	Create Payment Lines
+		String where = "AND EXISTS(SELECT 1 FROM C_Invoice "
+				+ "WHERE C_Invoice.C_Invoice_ID = LVE_MajorPlanLine.C_Invoice_ID "
+				+ "AND C_Invoice.C_BPartner_ID = "+BPartner_ID+")";
+		MLVEMajorPlanLine[] lines = getLines(where);
+		for(MLVEMajorPlanLine line : lines){
+			MPaymentAllocate payAll = new MPaymentAllocate(getCtx(), 0, get_TrxName());
+			payAll.setC_Payment_ID(pay.getC_Payment_ID());
+			payAll.setC_Invoice_ID(line.getC_Invoice_ID());
+			payAll.setInvoiceAmt(line.getAmount());
+			payAll.setAmount(line.getAmount());
+			payAll.saveEx(get_TrxName());
+		}
+		//	Complete payment
+		pay.processIt(MPayment.ACTION_Complete);
+		pay.saveEx(get_TrxName());
+		log.info("["+Msg.translate(getCtx(), "C_DocType_ID")+" => "+pay.getC_DocType().getName()+" "+Msg.translate(getCtx(), "DocumentNo") + " : " +pay.getDocumentNo()+"] \n");
+		info.append(Env.NL+"@C_Payment_ID@: ").append(pay.getDocumentNo());
+		String msg = pay.getProcessMsg();
+		if (msg != null && msg.length() > 0)
+			info.append(" (").append(msg).append(")");
+	}// createPayment	
+	
+	/**
+	 * Create Bank Charges from MajorPlanType
+	 * @author Jorge Colmenarez,jcolmenarez@frontuari.com, http://www.frontuari.com 
+	 * @param info 
+	 * @param PayAmt
+	 * @return Payments 
+	 */
+	private void createBankCharge(BigDecimal amt, StringBuilder info)
+	{
+		MLVEMajorPlanType mpt = new MLVEMajorPlanType(getCtx(), getLVE_MajorPlanType_ID(), get_TrxName());
+		MLVEMajorPlanBankCharge[] bankcharges = mpt.getBankCharges();
+		if(bankcharges.length == 0){
+			log.warning("No "+Msg.translate(getCtx(),"LVE_MajorPlanBankCharge"));
+		}else{
+			//	Create new Payment or Receipt from bank charge
+			for(MLVEMajorPlanBankCharge bankcharge : bankcharges){
+				MPayment bchPayment = new MPayment(getCtx(), 0, get_TrxName());
+				bchPayment.setAD_Org_ID(getAD_Org_ID());
+				bchPayment.setDateTrx(getDateDoc());
+				bchPayment.setDateAcct(getDateDoc());
+				bchPayment.setDescription(bankcharge.getName());
+				bchPayment.setC_Currency_ID(Env.getContextAsInt(getCtx(), "$C_Currency_ID"));
+				bchPayment.setC_DocType_ID(bankcharge.getC_DocType_ID());
+				bchPayment.setIsReceipt(bankcharge.getC_DocType().isSOTrx());
+				bchPayment.setC_BankAccount_ID(mpt.getC_BankAccount_ID());
+				bchPayment.setC_BPartner_ID(mpt.getC_BPartner_ID());
+				bchPayment.setC_Charge_ID(bankcharge.getC_Charge_ID());
+				bchPayment.setTenderType(MPayment.TENDERTYPE_Account);
+				BigDecimal bchAmt = amt.multiply(bankcharge.getRate().divide(new BigDecimal(100)));
+				bchPayment.setPayAmt(bchAmt.setScale(2, BigDecimal.ROUND_HALF_UP));
+				//	Set Major Plan Reference
+				bchPayment.set_ValueOfColumn("LVE_MajorPlan_ID", getLVE_MajorPlan_ID());
+				bchPayment.saveEx(get_TrxName());
+				bchPayment.processIt(MPayment.ACTION_Complete);
+				bchPayment.saveEx(get_TrxName());
+				info.append(Env.NL+"@C_Payment_ID@: ").append(bchPayment.getDocumentNo());
+				String msg = bchPayment.getProcessMsg();
+				if (msg != null && msg.length() > 0)
+					info.append(" (").append(msg).append(")");
+			}	
+		}
+	}
 }

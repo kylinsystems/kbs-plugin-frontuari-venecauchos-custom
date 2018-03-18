@@ -33,7 +33,7 @@ public class X_LVE_MajorPlanLine extends PO implements I_LVE_MajorPlanLine, I_Pe
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20180312L;
+	private static final long serialVersionUID = 20180317L;
 
     /** Standard Constructor */
     public X_LVE_MajorPlanLine (Properties ctx, int LVE_MajorPlanLine_ID, String trxName)
@@ -146,6 +146,23 @@ public class X_LVE_MajorPlanLine extends PO implements I_LVE_MajorPlanLine, I_Pe
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	/** Set Due Date.
+		@param DueDate 
+		Date when the payment is due
+	  */
+	public void setDueDate (Timestamp DueDate)
+	{
+		set_Value (COLUMNNAME_DueDate, DueDate);
+	}
+
+	/** Get Due Date.
+		@return Date when the payment is due
+	  */
+	public Timestamp getDueDate () 
+	{
+		return (Timestamp)get_Value(COLUMNNAME_DueDate);
 	}
 
 	/** Set Interest Amount.

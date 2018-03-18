@@ -79,6 +79,21 @@ public interface I_LVE_MajorPlanTypeLine
 
 	public org.compiere.model.I_C_BPartner getC_BPartner() throws RuntimeException;
 
+    /** Column name C_PaymentTerm_ID */
+    public static final String COLUMNNAME_C_PaymentTerm_ID = "C_PaymentTerm_ID";
+
+	/** Set Payment Term.
+	  * The terms of Payment (timing, discount)
+	  */
+	public void setC_PaymentTerm_ID (int C_PaymentTerm_ID);
+
+	/** Get Payment Term.
+	  * The terms of Payment (timing, discount)
+	  */
+	public int getC_PaymentTerm_ID();
+
+	public org.compiere.model.I_C_PaymentTerm getC_PaymentTerm() throws RuntimeException;
+
     /** Column name Created */
     public static final String COLUMNNAME_Created = "Created";
 
@@ -94,6 +109,19 @@ public interface I_LVE_MajorPlanTypeLine
 	  * User who created this records
 	  */
 	public int getCreatedBy();
+
+    /** Column name InterestPercent */
+    public static final String COLUMNNAME_InterestPercent = "InterestPercent";
+
+	/** Set Interest in percent.
+	  * Percentage interest to charge on overdue invoices
+	  */
+	public void setInterestPercent (BigDecimal InterestPercent);
+
+	/** Get Interest in percent.
+	  * Percentage interest to charge on overdue invoices
+	  */
+	public BigDecimal getInterestPercent();
 
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
