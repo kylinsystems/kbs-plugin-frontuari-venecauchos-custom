@@ -1,6 +1,7 @@
 package org.frontuari.model;
 
 import java.sql.ResultSet;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -44,6 +45,19 @@ public class MLVEMajorPlanLine extends X_LVE_MajorPlanLine {
 			m_parent = new MLVEMajorPlan(getCtx(), getLVE_MajorPlan_ID(), get_TrxName());
 		return m_parent;
 	}	//	getParent
+
+	/**
+	 * 	Parent Constructor
+	 * 	@param majorplan parent
+	 */
+	public MLVEMajorPlanLine (MLVEMajorPlan majorplan)
+	{
+		this (majorplan.getCtx(), 0, majorplan.get_TrxName());
+		if (majorplan.get_ID() == 0)
+			throw new IllegalArgumentException("Header not saved");
+		setClientOrg(majorplan.getAD_Client_ID(), majorplan.getAD_Org_ID());
+		setLVE_MajorPlan_ID (majorplan.getLVE_MajorPlan_ID());
+	}	//	MInvoiceLine
 	
 	/**	Major Plan Invoices			*/
 	private MInvoice[]	m_invoices;
@@ -111,6 +125,16 @@ public class MLVEMajorPlanLine extends X_LVE_MajorPlanLine {
 		if((!newRecord && is_ValueChanged(COLUMNNAME_Amount)) || newRecord){
 			getParent().setAmount(getParent().getAmount().add(getAmount()));
 			getParent().saveEx();
+		}
+		//	Set DueDate
+		if(getC_Invoice_ID() > 0 && getDueDate() == null){
+			String sql = "SELECT paymenttermduedate(mpt.C_PaymentTerm_ID,mp.DateDoc) "
+					+ "FROM LVE_MajorPlan mp "
+					+ "INNER JOIN LVE_MajorPlanTypeLine mpt ON mp.LVE_MajorPlanType_ID = mpt.LVE_MajorPlanType_ID "
+					+ "WHERE mp.LVE_MajorPlan_ID = ? "
+					+ "AND C_BPartner_ID = (SELECT C_BPartner_ID FROM C_Invoice WHERE C_Invoice_ID = ?)";
+	        Timestamp duedate = DB.getSQLValueTS(null, sql, new Object[]{(Integer)getLVE_MajorPlan_ID(),getC_Invoice_ID()});
+	        setDueDate(duedate);
 		}
 		
 		return true;

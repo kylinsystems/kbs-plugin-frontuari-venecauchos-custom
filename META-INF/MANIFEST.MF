@@ -2,17 +2,30 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Frontuari Features
 Bundle-SymbolicName: frontuari-features;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 4.1.0.qualifier
 Bundle-Activator: org.adempiere.plugin.utils.Incremental2PackActivator
 Require-Bundle: org.adempiere.base;bundle-version="4.1.0",
  org.adempiere.plugin.utils;bundle-version="4.1.0",
  org.adempiere.ui.zk;bundle-version="4.1.0",
- org.idempiere.webservices
+ org.idempiere.webservices,
+ zcommon;bundle-version="0.0.0",
+ zel;bundle-version="0.0.0",
+ zhtml;bundle-version="0.0.0",
+ zk;bundle-version="0.0.0",
+ zkbind;bundle-version="0.0.0",
+ zkplus;bundle-version="0.0.0",
+ zul;bundle-version="0.0.0",
+ zweb;bundle-version="0.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Service-Component: OSGI-INF/LVE_FTUCallOutFactory.xml,OSGI-INF/LVE_FTUEventHandler.xml,
- OSGI-INF/LVE_FTUProcess.xml,OSGI-INF/LVE_FTUModelFactory.xml
+ OSGI-INF/LVE_FTUCreateFromFactory.xml,OSGI-INF/LVE_FTUFormFactory.xml,OSGI-INF/LVE_FTUProcess.xml,
+ OSGI-INF/LVE_FTUModelFactory.xml
 Bundle-ActivationPolicy: lazy
-Import-Package: org.osgi.service.event;version="1.3.0",
+Import-Package: org.compiere.apps,
+ org.compiere.apps.form,
+ org.compiere.grid,
+ org.compiere.minigrid,
+ org.osgi.service.event;version="1.3.0",
  org.zkoss.zhtml
 Bundle-Vendor: Frontuari, C.A.
 Export-Package: org.frontuari.callouts,
