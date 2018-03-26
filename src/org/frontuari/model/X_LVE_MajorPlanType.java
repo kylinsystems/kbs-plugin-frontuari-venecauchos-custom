@@ -32,7 +32,7 @@ public class X_LVE_MajorPlanType extends PO implements I_LVE_MajorPlanType, I_Pe
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20180317L;
+	private static final long serialVersionUID = 20180326L;
 
     /** Standard Constructor */
     public X_LVE_MajorPlanType (Properties ctx, int LVE_MajorPlanType_ID, String trxName)
@@ -40,6 +40,15 @@ public class X_LVE_MajorPlanType extends PO implements I_LVE_MajorPlanType, I_Pe
       super (ctx, LVE_MajorPlanType_ID, trxName);
       /** if (LVE_MajorPlanType_ID == 0)
         {
+			setAmtApproval (Env.ZERO);
+// 0
+			setC_BankAccount_ID (0);
+			setC_Bank_ID (0);
+			setC_BPartner_ID (0);
+			setC_Charge_ID (0);
+			setC_DocType_ID (0);
+			setC_DocTypeTarget_ID (0);
+			setName (null);
         } */
     }
 
@@ -282,6 +291,31 @@ public class X_LVE_MajorPlanType extends PO implements I_LVE_MajorPlanType, I_Pe
 	public int getDocNoSequence_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_DocNoSequence_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.compiere.model.I_C_Charge getLVE_Charge() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_Charge)MTable.get(getCtx(), org.compiere.model.I_C_Charge.Table_Name)
+			.getPO(getLVE_Charge_ID(), get_TrxName());	}
+
+	/** Set Other Charge.
+		@param LVE_Charge_ID Other Charge	  */
+	public void setLVE_Charge_ID (int LVE_Charge_ID)
+	{
+		if (LVE_Charge_ID < 1) 
+			set_Value (COLUMNNAME_LVE_Charge_ID, null);
+		else 
+			set_Value (COLUMNNAME_LVE_Charge_ID, Integer.valueOf(LVE_Charge_ID));
+	}
+
+	/** Get Other Charge.
+		@return Other Charge	  */
+	public int getLVE_Charge_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_LVE_Charge_ID);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();

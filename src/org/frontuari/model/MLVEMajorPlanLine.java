@@ -1,11 +1,13 @@
 package org.frontuari.model;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 
+import org.compiere.model.MAllocationLine;
 import org.compiere.model.MInvoice;
 import org.compiere.model.Query;
 import org.compiere.util.DB;
@@ -74,6 +76,7 @@ public class MLVEMajorPlanLine extends X_LVE_MajorPlanLine {
 			whereClauseFinal += whereClause;
 		List<MInvoice> list = new Query(getCtx(), MInvoice.Table_Name, whereClauseFinal, get_TrxName())
 										.setParameters(getLVE_MajorPlan_ID())
+										.setOnlyActiveRecords(true)
 										.setOrderBy(MInvoice.COLUMNNAME_DocumentNo)
 										.list();
 		return list.toArray(new MInvoice[list.size()]);
@@ -100,6 +103,71 @@ public class MLVEMajorPlanLine extends X_LVE_MajorPlanLine {
 	{
 		return getInvoices(false);
 	}	//	getLines
+	
+	/**	Major Plan Allocation Lines			*/
+	private MAllocationLine[]	m_allLines;
+
+	/**
+	 * 	Get Major Plan Lines of Major Plan
+	 * 	@param whereClause starting with AND
+	 * 	@return lines
+	 */
+	private MAllocationLine[] getAllocationLines (String whereClause)
+	{
+		String whereClauseFinal = " EXISTS (SELECT 1 FROM C_AllocationHdr WHERE C_AllocationHdr.DocStatus IN ('CO','CL') AND C_AllocationHdr.C_AllocationHdr_ID = C_AllocationLine.C_AllocationHdr_ID) "
+				+ "AND EXISTS (SELECT 1 FROM LVE_MajorPlanLine WHERE LVE_MajorPlanLine.LVE_MajorPlanLine_ID = C_AllocationLine.LVE_MajorPlanLine_ID AND LVE_MajorPlan_ID=?) ";
+		if (whereClause != null)
+			whereClauseFinal += whereClause;
+		List<MInvoice> list = new Query(getCtx(), MAllocationLine.Table_Name, whereClauseFinal, get_TrxName())
+										.setParameters(getLVE_MajorPlan_ID())
+										.setOnlyActiveRecords(true)
+										.setOrderBy(MAllocationLine.COLUMNNAME_C_AllocationLine_ID)
+										.list();
+		return list.toArray(new MAllocationLine[list.size()]);
+	}	//	getLines
+
+	/**
+	 * 	Get Major Plan Lines
+	 * 	@param requery
+	 * 	@return lines
+	 */
+	public MAllocationLine[] getAllocationLines (boolean requery)
+	{
+		if (m_allLines == null || m_allLines.length == 0 || requery)
+			m_allLines = getAllocationLines(null);
+		set_TrxName(m_allLines, get_TrxName());
+		return m_allLines;
+	}	//	getLines
+
+	/**
+	 * 	Get Lines of Invoice
+	 * 	@return lines
+	 */
+	public MAllocationLine[] getAllocationLines()
+	{
+		return getAllocationLines(false);
+	}	//	getLines
+	
+	/**
+	 * get openAmt from Major Plan Line
+	 * @author Jorge Colmenarez,jcolmenarez@frontuari.com, http://www.frontuari.com 
+	 * @return openAmt
+	 */
+	public BigDecimal openAmt(){
+		BigDecimal openAmt = BigDecimal.ZERO;
+		
+		String sql = "SELECT MAX(mpl.Amount)-SUM(COALESCE(ABS(al.Amount),0)) AS openAmt "
+				+ "FROM LVE_MajorPlanLine mpl "
+				+ "INNER JOIN LVE_MajorPlan mp ON(mpl.LVE_MajorPlan_ID = mp.LVE_MajorPlan_ID) "
+				+ "INNER JOIN LVE_MajorPlanType mpt ON (mp.LVE_MajorPlanType_ID = mpt.LVE_MajorPlanType_ID) "
+				+ "LEFT JOIN C_AllocationLine al ON(mpl.LVE_MajorPlanLine_ID = al.LVE_MajorPlanLine_ID AND mpt.C_Charge_ID = al.C_Charge_ID) "
+				+ "LEFT JOIN C_AllocationHdr ah ON(al.C_AllocationHdr_ID = ah.C_AllocationHdr_ID AND ah.DocStatus IN ('CO','CL')) "
+				+ "WHERE mpl.LVE_MajorPlanLine_ID = ? ";
+		
+		openAmt = DB.getSQLValueBD(get_TrxName(), sql, getLVE_MajorPlanLine_ID());
+		
+		return openAmt;
+	}
 
 	/**************************************************************************
 	 * 	Before Save

@@ -12,6 +12,7 @@ import org.adempiere.exceptions.AdempiereException;
 import org.compiere.acct.Doc;
 import org.compiere.acct.Fact;
 import org.compiere.model.MAllocationHdr;
+import org.compiere.model.MAllocationLine;
 import org.compiere.model.MOrder;
 import org.compiere.model.MPayment;
 import org.compiere.model.MSysConfig;
@@ -19,6 +20,7 @@ import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
+import org.frontuari.model.MLVEMajorPlanLine;
 import org.osgi.service.event.Event;
 
 /**
@@ -36,6 +38,7 @@ public class FTUEventsHandler extends AbstractEventHandler {
 		registerTableEvent(IEventTopics.DOC_BEFORE_POST, MPayment.Table_Name);
 		registerTableEvent(IEventTopics.PO_BEFORE_NEW, MPayment.Table_Name);
 		registerTableEvent(IEventTopics.DOC_BEFORE_POST, MAllocationHdr.Table_Name);
+		registerTableEvent(IEventTopics.DOC_AFTER_REVERSECORRECT, MAllocationHdr.Table_Name);
 	}
 
 	protected void doHandleEvent(Event event) {
@@ -64,9 +67,22 @@ public class FTUEventsHandler extends AbstractEventHandler {
 		}
 		//	Apply Distributions for InterOrg Accounts into Allocations
 		else if(po instanceof MAllocationHdr){
+			MAllocationHdr allocation = (MAllocationHdr)po;
 			if(type.equalsIgnoreCase(IEventTopics.DOC_BEFORE_POST)){
-				MAllocationHdr allocation = (MAllocationHdr)po;
 				ApplyDistribution(allocation.getDoc());
+			}
+			else if(type.equalsIgnoreCase(IEventTopics.DOC_AFTER_REVERSECORRECT)){
+				MAllocationLine[] allLines = allocation.getLines(true);
+				for(MAllocationLine line : allLines){
+					//	Check if have Major Plan Allocated for reverse Lines Paid
+					if(line.get_Value("LVE_MajorPlanLine_ID") != null 
+							|| line.get_ValueAsInt("LVE_MajorPlanLine_ID") > 0){
+						MLVEMajorPlanLine mpLine = new MLVEMajorPlanLine(po.getCtx(), 
+								line.get_ValueAsInt("LVE_MajorPlanLine_ID"), po.get_TrxName());
+						mpLine.setIsPaid(false);
+						mpLine.saveEx(po.get_TrxName());
+					}
+				}
 			}
 		}
 		//	Apply Distributions for InterOrg Accounts into Payments

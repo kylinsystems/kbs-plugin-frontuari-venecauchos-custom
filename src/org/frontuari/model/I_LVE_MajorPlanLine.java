@@ -136,19 +136,6 @@ public interface I_LVE_MajorPlanLine
 	  */
 	public Timestamp getDueDate();
 
-    /** Column name InterestAmt */
-    public static final String COLUMNNAME_InterestAmt = "InterestAmt";
-
-	/** Set Interest Amount.
-	  * Interest Amount
-	  */
-	public void setInterestAmt (BigDecimal InterestAmt);
-
-	/** Get Interest Amount.
-	  * Interest Amount
-	  */
-	public BigDecimal getInterestAmt();
-
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
 
@@ -188,19 +175,6 @@ public interface I_LVE_MajorPlanLine
 	  */
 	public int getLine();
 
-    /** Column name LineNetAmt */
-    public static final String COLUMNNAME_LineNetAmt = "LineNetAmt";
-
-	/** Set Line Amount.
-	  * Line Extended Amount (Quantity * Actual Price) without Freight and Charges
-	  */
-	public void setLineNetAmt (BigDecimal LineNetAmt);
-
-	/** Get Line Amount.
-	  * Line Extended Amount (Quantity * Actual Price) without Freight and Charges
-	  */
-	public BigDecimal getLineNetAmt();
-
     /** Column name LVE_MajorPlan_ID */
     public static final String COLUMNNAME_LVE_MajorPlan_ID = "LVE_MajorPlan_ID";
 
@@ -229,19 +203,6 @@ public interface I_LVE_MajorPlanLine
 
 	/** Get LVE_MajorPlanLine_UU	  */
 	public String getLVE_MajorPlanLine_UU();
-
-    /** Column name PayDate */
-    public static final String COLUMNNAME_PayDate = "PayDate";
-
-	/** Set Payment date.
-	  * Date Payment made
-	  */
-	public void setPayDate (Timestamp PayDate);
-
-	/** Get Payment date.
-	  * Date Payment made
-	  */
-	public Timestamp getPayDate();
 
     /** Column name Processed */
     public static final String COLUMNNAME_Processed = "Processed";

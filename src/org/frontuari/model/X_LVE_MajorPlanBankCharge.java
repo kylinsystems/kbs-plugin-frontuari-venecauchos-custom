@@ -32,7 +32,7 @@ public class X_LVE_MajorPlanBankCharge extends PO implements I_LVE_MajorPlanBank
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20180317L;
+	private static final long serialVersionUID = 20180326L;
 
     /** Standard Constructor */
     public X_LVE_MajorPlanBankCharge (Properties ctx, int LVE_MajorPlanBankCharge_ID, String trxName)
@@ -131,6 +131,27 @@ public class X_LVE_MajorPlanBankCharge extends PO implements I_LVE_MajorPlanBank
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	/** Set Charge Bank.
+		@param IsChargeBank Charge Bank	  */
+	public void setIsChargeBank (boolean IsChargeBank)
+	{
+		set_Value (COLUMNNAME_IsChargeBank, Boolean.valueOf(IsChargeBank));
+	}
+
+	/** Get Charge Bank.
+		@return Charge Bank	  */
+	public boolean isChargeBank () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsChargeBank);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
 	}
 
 	/** Set Major Plan Bank Charge.

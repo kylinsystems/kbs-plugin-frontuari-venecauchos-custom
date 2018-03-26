@@ -211,6 +211,17 @@ public interface I_LVE_MajorPlanType
 	  */
 	public boolean isActive();
 
+    /** Column name LVE_Charge_ID */
+    public static final String COLUMNNAME_LVE_Charge_ID = "LVE_Charge_ID";
+
+	/** Set Other Charge	  */
+	public void setLVE_Charge_ID (int LVE_Charge_ID);
+
+	/** Get Other Charge	  */
+	public int getLVE_Charge_ID();
+
+	public org.compiere.model.I_C_Charge getLVE_Charge() throws RuntimeException;
+
     /** Column name LVE_MajorPlanType_ID */
     public static final String COLUMNNAME_LVE_MajorPlanType_ID = "LVE_MajorPlanType_ID";
 

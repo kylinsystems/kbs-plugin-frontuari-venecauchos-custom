@@ -36,6 +36,7 @@ public class MLVEMajorPlanType extends X_LVE_MajorPlanType {
 			whereClauseFinal += whereClause;
 		List<MLVEMajorPlanTypeLine> list = new Query(getCtx(), I_LVE_MajorPlanTypeLine.Table_Name, whereClauseFinal, get_TrxName())
 										.setParameters(getLVE_MajorPlanType_ID())
+										.setOnlyActiveRecords(true)
 										.setOrderBy(I_LVE_MajorPlanTypeLine.COLUMNNAME_ValidFrom)
 										.list();
 		return list.toArray(new MLVEMajorPlanTypeLine[list.size()]);
@@ -78,6 +79,7 @@ public class MLVEMajorPlanType extends X_LVE_MajorPlanType {
 			whereClauseFinal += whereClause;
 		List<MLVEMajorPlanBankCharge> list = new Query(getCtx(), I_LVE_MajorPlanBankCharge.Table_Name, whereClauseFinal, get_TrxName())
 										.setParameters(getLVE_MajorPlanType_ID())
+										.setOnlyActiveRecords(true)
 										.setOrderBy(I_LVE_MajorPlanBankCharge.COLUMNNAME_Name)
 										.list();
 		return list.toArray(new MLVEMajorPlanBankCharge[list.size()]);

@@ -60,14 +60,18 @@ public class CreatePaymentMajorPlan
 		StringBuffer sql = new StringBuffer("SELECT mpl.C_Invoice_ID,i.DocumentNo,COALESCE(tit.Name,'')||bp.TaxID||' '||bp.Name AS BPartner, ")	// 1..3
 				.append(DB.TO_CHAR("mp.DateDoc", DisplayType.Date, Env.getAD_Language(Env.getCtx()))+",")	//	4
 				.append(DB.TO_CHAR("mpl.DueDate", DisplayType.Date, Env.getAD_Language(Env.getCtx())))	//	5
-				.append(",mpl.Amount,ROUND((mpl.Amount * ((mptl.InterestPercent / 100) / EXTRACT(DAY FROM (Now() - mp.DateDoc))::numeric)),2) AS InterestTranscurred, ") // 6..7
-				.append("ROUND((mpl.Amount + (mpl.Amount * ((mptl.InterestPercent / 100) / EXTRACT(DAY FROM (Now() - mp.DateDoc))::numeric))),2) AS LineNetAmt ") // 8
+				.append(",(mpl.Amount-COALESCE(al.Amount,0)) AS Amount,ROUND(((mpl.Amount-COALESCE(al.Amount,0)) * (((mptl.InterestPercent / 100) / 360) * (EXTRACT(DAY FROM (Now() - mp.DateDoc)))::numeric)),2) AS InterestTranscurred, ") // 6..7
+				.append("ROUND(((mpl.Amount-COALESCE(al.Amount,0)) + ((mpl.Amount-COALESCE(al.Amount,0)) * (((mptl.InterestPercent / 100) / 360) * (EXTRACT(DAY FROM (Now() - mp.DateDoc)))::numeric))),2) AS LineNetAmt ") // 8
 				.append("FROM LVE_MajorPlanLine mpl ")
 				.append("INNER JOIN LVE_MajorPlan mp ON (mpl.LVE_MajorPlan_ID = mp.LVE_MajorPlan_ID) ")
 				.append("INNER JOIN C_Invoice i ON (mpl.C_Invoice_ID = i.C_Invoice_ID) ")
+				.append("INNER JOIN LVE_MajorPlanType mpt ON (mp.LVE_MajorPlanType_ID = mpt.LVE_MajorPlanType_ID) ")
 				.append("INNER JOIN LVE_MajorPlanTypeLine mptl ON (mp.LVE_MajorPlanType_ID = mptl.LVE_MajorPlanType_ID AND i.C_BPartner_ID = mptl.C_BPartner_ID) ")
 				.append("INNER JOIN C_BPartner bp ON (i.C_BPartner_ID = bp.C_BPartner_ID) ")
 				.append("LEFT JOIN LCO_TaxIdType tit ON (bp.LCO_TaxIdType_ID = tit.LCO_TaxIdType_ID) ")
+				.append("LEFT JOIN (SELECT LVE_MajorPlanLine_ID,C_Charge_ID, SUM(ABS(Amount)) AS Amount FROM C_AllocationLine al ")
+				.append("INNER JOIN C_AllocationHdr ah ON ah.C_AllocationHdr_ID = al.C_AllocationHdr_ID ")
+				.append("WHERE ah.DocStatus IN ('CO','CL') GROUP BY LVE_MajorPlanLine_ID,C_Charge_ID) al ON (mpl.LVE_MajorPlanLine_ID = al.LVE_MajorPlanLine_ID AND al.C_Charge_ID = mpt.C_Charge_ID) ")
 				.append("WHERE mp.LVE_MajorPlan_ID = ? AND mpl.IsPaid = 'N'");
 		//  Execute
 		PreparedStatement pstmt = null;

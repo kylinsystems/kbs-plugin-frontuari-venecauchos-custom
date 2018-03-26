@@ -15,7 +15,8 @@ Require-Bundle: org.adempiere.base;bundle-version="4.1.0",
  zkbind;bundle-version="0.0.0",
  zkplus;bundle-version="0.0.0",
  zul;bundle-version="0.0.0",
- zweb;bundle-version="0.0.0"
+ zweb;bundle-version="0.0.0",
+ com.ibm.icu
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Service-Component: OSGI-INF/LVE_FTUCallOutFactory.xml,OSGI-INF/LVE_FTUEventHandler.xml,
  OSGI-INF/LVE_FTUCreateFromFactory.xml,OSGI-INF/LVE_FTUFormFactory.xml,OSGI-INF/LVE_FTUProcess.xml,

@@ -23,6 +23,7 @@ import java.sql.Timestamp;
 import java.util.Properties;
 import org.compiere.model.*;
 import org.compiere.util.Env;
+import org.compiere.util.KeyNamePair;
 
 /** Generated Model for LVE_MajorPlanLine
  *  @author iDempiere (generated) 
@@ -33,7 +34,7 @@ public class X_LVE_MajorPlanLine extends PO implements I_LVE_MajorPlanLine, I_Pe
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20180317L;
+	private static final long serialVersionUID = 20180326L;
 
     /** Standard Constructor */
     public X_LVE_MajorPlanLine (Properties ctx, int LVE_MajorPlanLine_ID, String trxName)
@@ -41,6 +42,10 @@ public class X_LVE_MajorPlanLine extends PO implements I_LVE_MajorPlanLine, I_Pe
       super (ctx, LVE_MajorPlanLine_ID, trxName);
       /** if (LVE_MajorPlanLine_ID == 0)
         {
+			setAmount (Env.ZERO);
+// 0
+			setC_Invoice_ID (0);
+			setLVE_MajorPlan_ID (0);
         } */
     }
 
@@ -165,26 +170,6 @@ public class X_LVE_MajorPlanLine extends PO implements I_LVE_MajorPlanLine, I_Pe
 		return (Timestamp)get_Value(COLUMNNAME_DueDate);
 	}
 
-	/** Set Interest Amount.
-		@param InterestAmt 
-		Interest Amount
-	  */
-	public void setInterestAmt (BigDecimal InterestAmt)
-	{
-		set_Value (COLUMNNAME_InterestAmt, InterestAmt);
-	}
-
-	/** Get Interest Amount.
-		@return Interest Amount
-	  */
-	public BigDecimal getInterestAmt () 
-	{
-		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_InterestAmt);
-		if (bd == null)
-			 return Env.ZERO;
-		return bd;
-	}
-
 	/** Set Paid.
 		@param IsPaid 
 		The document is paid
@@ -229,26 +214,6 @@ public class X_LVE_MajorPlanLine extends PO implements I_LVE_MajorPlanLine, I_Pe
 		return ii.intValue();
 	}
 
-	/** Set Line Amount.
-		@param LineNetAmt 
-		Line Extended Amount (Quantity * Actual Price) without Freight and Charges
-	  */
-	public void setLineNetAmt (BigDecimal LineNetAmt)
-	{
-		set_ValueNoCheck (COLUMNNAME_LineNetAmt, LineNetAmt);
-	}
-
-	/** Get Line Amount.
-		@return Line Extended Amount (Quantity * Actual Price) without Freight and Charges
-	  */
-	public BigDecimal getLineNetAmt () 
-	{
-		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_LineNetAmt);
-		if (bd == null)
-			 return Env.ZERO;
-		return bd;
-	}
-
 	public org.frontuari.model.I_LVE_MajorPlan getLVE_MajorPlan() throws RuntimeException
     {
 		return (org.frontuari.model.I_LVE_MajorPlan)MTable.get(getCtx(), org.frontuari.model.I_LVE_MajorPlan.Table_Name)
@@ -273,6 +238,14 @@ public class X_LVE_MajorPlanLine extends PO implements I_LVE_MajorPlanLine, I_Pe
 			 return 0;
 		return ii.intValue();
 	}
+
+    /** Get Record ID/ColumnName
+        @return ID/ColumnName pair
+      */
+    public KeyNamePair getKeyNamePair() 
+    {
+        return new KeyNamePair(get_ID(), String.valueOf(getLVE_MajorPlan_ID()));
+    }
 
 	/** Set LVE_MajorPlanLine_ID.
 		@param LVE_MajorPlanLine_ID LVE_MajorPlanLine_ID	  */
@@ -306,23 +279,6 @@ public class X_LVE_MajorPlanLine extends PO implements I_LVE_MajorPlanLine, I_Pe
 	public String getLVE_MajorPlanLine_UU () 
 	{
 		return (String)get_Value(COLUMNNAME_LVE_MajorPlanLine_UU);
-	}
-
-	/** Set Payment date.
-		@param PayDate 
-		Date Payment made
-	  */
-	public void setPayDate (Timestamp PayDate)
-	{
-		set_Value (COLUMNNAME_PayDate, PayDate);
-	}
-
-	/** Get Payment date.
-		@return Date Payment made
-	  */
-	public Timestamp getPayDate () 
-	{
-		return (Timestamp)get_Value(COLUMNNAME_PayDate);
 	}
 
 	/** Set Processed.

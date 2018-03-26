@@ -123,6 +123,15 @@ public interface I_LVE_MajorPlanBankCharge
 	  */
 	public boolean isActive();
 
+    /** Column name IsChargeBank */
+    public static final String COLUMNNAME_IsChargeBank = "IsChargeBank";
+
+	/** Set Charge Bank	  */
+	public void setIsChargeBank (boolean IsChargeBank);
+
+	/** Get Charge Bank	  */
+	public boolean isChargeBank();
+
     /** Column name LVE_MajorPlanBankCharge_ID */
     public static final String COLUMNNAME_LVE_MajorPlanBankCharge_ID = "LVE_MajorPlanBankCharge_ID";
 

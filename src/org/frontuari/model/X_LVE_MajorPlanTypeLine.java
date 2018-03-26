@@ -33,7 +33,7 @@ public class X_LVE_MajorPlanTypeLine extends PO implements I_LVE_MajorPlanTypeLi
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20180317L;
+	private static final long serialVersionUID = 20180326L;
 
     /** Standard Constructor */
     public X_LVE_MajorPlanTypeLine (Properties ctx, int LVE_MajorPlanTypeLine_ID, String trxName)
@@ -42,6 +42,9 @@ public class X_LVE_MajorPlanTypeLine extends PO implements I_LVE_MajorPlanTypeLi
       /** if (LVE_MajorPlanTypeLine_ID == 0)
         {
 			setC_BPartner_ID (0);
+			setC_PaymentTerm_ID (0);
+			setInterestPercent (Env.ZERO);
+// 0
 			setLVE_MajorPlanType_ID (0);
 			setLVE_MajorPlanTypeLine_ID (0);
 			setValidFrom (new Timestamp( System.currentTimeMillis() ));
