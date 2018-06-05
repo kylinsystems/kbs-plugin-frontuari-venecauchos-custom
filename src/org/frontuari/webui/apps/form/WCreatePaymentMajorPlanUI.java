@@ -3,6 +3,7 @@ package org.frontuari.webui.apps.form;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
+import java.util.Calendar;
 import java.util.Vector;
 import java.util.logging.Level;
 
@@ -20,6 +21,7 @@ import org.adempiere.webui.component.Row;
 import org.adempiere.webui.component.Rows;
 import org.adempiere.webui.component.Textbox;
 import org.adempiere.webui.component.WListbox;
+import org.adempiere.webui.editor.WDateEditor;
 import org.adempiere.webui.editor.WTableDirEditor;
 import org.adempiere.webui.event.ValueChangeEvent;
 import org.adempiere.webui.event.ValueChangeListener;
@@ -51,6 +53,7 @@ import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zul.Borderlayout;
 import org.zkoss.zul.Center;
+import org.zkoss.zul.Hbox;
 import org.zkoss.zul.Hlayout;
 import org.zkoss.zul.North;
 import org.zkoss.zul.Separator;
@@ -95,6 +98,8 @@ implements IFormController,EventListener<Event>, WTableModelListener, ValueChang
 	private Grid parameterLayout = GridFactory.newGridLayout();
 	private Label lMajorPlan = new Label();
 	private WTableDirEditor fMajorPlan;
+	private Label dateLabel = new Label();
+	private WDateEditor dateField = new WDateEditor();
 	//	data panel
 	private Hlayout statusBar = new Hlayout();
 	private Label dataStatus = new Label();
@@ -129,6 +134,7 @@ implements IFormController,EventListener<Event>, WTableModelListener, ValueChang
 		parameterPanel.appendChild(parameterLayout);
 		
 		lMajorPlan.setText(Msg.translate(Env.getCtx(), "LVE_MajorPlan_ID"));
+		dateLabel.setText(Msg.getMsg(Env.getCtx(), "Date"));
 		dataStatus.setText(" ");
 		statusBar.appendChild(dataStatus);
 		
@@ -151,10 +157,16 @@ implements IFormController,EventListener<Event>, WTableModelListener, ValueChang
 		Row row = null;
 		ZKUpdateUtil.setWidth(parameterLayout, "90%");
 		rows = parameterLayout.newRows();
+		//	Major Plan
 		row = rows.newRow();
 		row.appendCellChild(lMajorPlan.rightAlign());
 		ZKUpdateUtil.setHflex(fMajorPlan.getComponent(), "true");
 		row.appendCellChild(fMajorPlan.getComponent(),2);
+		//	PayDate
+		Hbox box = new Hbox();
+		box.appendChild(dateLabel.rightAlign());
+		box.appendChild(dateField.getComponent());
+		row.appendCellChild(box);
 		row.appendCellChild(new Space());
 		
 		// Data Panel
@@ -196,6 +208,15 @@ implements IFormController,EventListener<Event>, WTableModelListener, ValueChang
 				"LVE_MajorPlan_ID", 0, false, sqlExists);
 		fMajorPlan = new WTableDirEditor ("LVE_MajorPlan_ID", false, false, true, MajorPlanL);
 		fMajorPlan.addValueChangeListener(this);
+		//  Date set to Login Date
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(Env.getContextAsDate(Env.getCtx(), "#Date"));
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		dateField.setValue(new Timestamp(cal.getTimeInMillis()));
+		dateField.addValueChangeListener(this);
 		//  Translation
 		statusBar.appendChild(new Label(Msg.getMsg(Env.getCtx(), "AllocateStatus")));
 		ZKUpdateUtil.setVflex(statusBar, "min");
@@ -270,6 +291,8 @@ implements IFormController,EventListener<Event>, WTableModelListener, ValueChang
 		
 		if (name.equals("LVE_MajorPlan_ID"))
 			m_LVE_MajorPlan_ID = (Integer)e.getNewValue();
+		else if(name.equals("Date"))
+			m_PayDate = (Timestamp)e.getNewValue();
 		//	Load Data with change
 		loadData();
 	}	//	vetoableChange
@@ -326,7 +349,8 @@ implements IFormController,EventListener<Event>, WTableModelListener, ValueChang
 					pay.setIsReceipt(false);
 					pay.setC_BankAccount_ID(mP.getLVE_MajorPlanType().getC_BankAccount_ID());
 					pay.setC_BPartner_ID(mP.getLVE_MajorPlanType().getC_BPartner_ID());
-					pay.setDateTrx(new Timestamp (System.currentTimeMillis()));
+					pay.setDateTrx(m_PayDate);
+					pay.setDateAcct(m_PayDate);
 					pay.setTenderType(MPayment.TENDERTYPE_Account);
 					pay.set_ValueOfColumn("LVE_MajorPlan_ID", m_LVE_MajorPlan_ID);
 					pay.setC_Currency_ID(Env.getContextAsInt(Env.getCtx(),"$C_Currency_ID"));
@@ -340,6 +364,8 @@ implements IFormController,EventListener<Event>, WTableModelListener, ValueChang
 					//	Create Allocation Header
 					MAllocationHdr allHdr = new MAllocationHdr(Env.getCtx(), 0, trxName);
 					MUser user = new MUser(Env.getCtx(), Env.getAD_User_ID(Env.getCtx()), trxName);
+					allHdr.setDateTrx(m_PayDate);
+					allHdr.setDateAcct(m_PayDate);
 					allHdr.setDescription(Msg.translate(Env.getCtx(),"CreatedBy")+": "+user.getName());
 					allHdr.setC_Currency_ID(Env.getContextAsInt(Env.getCtx(), "$C_Currency_ID"));
 					allHdr.saveEx(trxName);
@@ -347,7 +373,7 @@ implements IFormController,EventListener<Event>, WTableModelListener, ValueChang
 					MAllocationLine allLinePay = new MAllocationLine(allHdr);
 					allLinePay.setC_Payment_ID(pay.getC_Payment_ID());
 					allLinePay.setC_BPartner_ID(pay.getC_BPartner_ID());
-					allLinePay.setAmount(totalPay);
+					allLinePay.setAmount(totalPay.negate());
 					allLinePay.saveEx(trxName);
 					for ( int r = 0; r < miniTable.getModel().getRowCount(); r++ )
 					{
@@ -366,14 +392,14 @@ implements IFormController,EventListener<Event>, WTableModelListener, ValueChang
 							allLineMP.setC_BPartner_ID(pay.getC_BPartner_ID());
 							allLineMP.setC_Charge_ID(mP.getLVE_MajorPlanType().getC_Charge_ID());
 							allLineMP.set_ValueOfColumn("LVE_MajorPlanLine_ID", MPLine_ID);
-							allLineMP.setAmount(payAmtMP.negate());
+							allLineMP.setAmount(payAmtMP);
 							allLineMP.saveEx(trxName);
 							//	Create AllocationLine for pay Interest
 							MAllocationLine allLineInt = new MAllocationLine(allHdr);
 							allLineInt.setC_BPartner_ID(pay.getC_BPartner_ID());
 							allLineInt.setC_Charge_ID(mP.getLVE_MajorPlanType().getLVE_Charge_ID());
 							allLineInt.set_ValueOfColumn("LVE_MajorPlanLine_ID", MPLine_ID);
-							allLineInt.setAmount(payAmtInt.negate());
+							allLineInt.setAmount(payAmtInt);
 							allLineInt.saveEx(trxName);
 							
 							BigDecimal openAmt = line.openAmt();

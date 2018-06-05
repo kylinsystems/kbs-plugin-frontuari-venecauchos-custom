@@ -37,4 +37,31 @@
             priority="0">
       </process>
    </extension>
+   <extension
+         id="org.frontuari.process.CreateInputReclaim"
+         name="CreateInputReclaim"
+         point="org.adempiere.base.Process">
+      <process
+            class="org.frontuari.process.CreateInputReclaim"
+            priority="0">
+      </process>
+   </extension>
+   <extension
+         id="org.frontuari.process.CreateOutputReclaim"
+         name="CreateOutputReclaim"
+         point="org.adempiere.base.Process">
+      <process
+            class="org.frontuari.process.CreateOutputReclaim"
+            priority="0">
+      </process>
+   </extension>
+   <extension
+         id="org.frontuari.process.CreateDocFromReclaim"
+         name="CreateDocFromReclaim"
+         point="org.adempiere.base.Process">
+      <process
+            class="org.frontuari.process.CreateDocFromReclaim"
+            priority="0">
+      </process>
+   </extension>
 </plugin>

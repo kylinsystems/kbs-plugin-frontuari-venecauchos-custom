@@ -2,6 +2,7 @@ package org.frontuari.model;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
@@ -308,11 +309,12 @@ public class MLVEMajorPlan extends X_LVE_MajorPlan implements DocAction,DocOptio
 		}
 		
 		//	Check that not exceeded approval amt
-		String sql = "SELECT MAX(mpt.AmtApproval)-SUM(mp.Amount) AS AmtAvailable "
+		String sql = "SELECT MAX(mpt.AmtApproval)-SUM(COALESCE(mpl.Amount,0)) AS AmtAvailable "
 				+ "FROM LVE_MajorPlanType mpt "
-				+ "INNER JOIN LVE_MajorPlan mp ON mpt.LVE_MajorPlanType_ID = mp.LVE_MajorPlanType_ID "
-				+ "WHERE mp.LVE_MajorPlanType_ID = ? AND (mp.DocStatus IN ('CO','CL') OR mp.LVE_MajorPlan_ID = ?)";
-		BigDecimal amtAvailable = DB.getSQLValueBD(get_TrxName(), sql, getLVE_MajorPlanType_ID(), getLVE_MajorPlan_ID());
+				+ "LEFT JOIN LVE_MajorPlan mp ON mpt.LVE_MajorPlanType_ID = mp.LVE_MajorPlanType_ID "
+				+ "LEFT JOIN LVE_MajorPlanLine mpl ON mp.LVE_MajorPlan_ID = mpl.LVE_MajorPlan_ID AND mpl.IsPaid = 'N'"
+				+ "WHERE mp.LVE_MajorPlanType_ID = ? AND mp.DocStatus IN ('CO','CL') ";
+		BigDecimal amtAvailable = DB.getSQLValueBD(get_TrxName(), sql, getLVE_MajorPlanType_ID());
 		if(getAmount().compareTo(amtAvailable) > 0){
 			m_processMsg = "@majorplan.creditamt.exceeded@";
 			return DocAction.STATUS_Invalid;
@@ -861,7 +863,8 @@ public class MLVEMajorPlan extends X_LVE_MajorPlan implements DocAction,DocOptio
 				bchPayment.setC_Charge_ID(bankcharge.getC_Charge_ID());
 				bchPayment.setTenderType(MPayment.TENDERTYPE_Account);
 				BigDecimal bchAmt = amt.multiply(bankcharge.getRate().divide(new BigDecimal(100)));
-				bchPayment.setPayAmt(bchAmt.setScale(2, BigDecimal.ROUND_HALF_UP));
+				//	Truncate PayAmt
+				bchPayment.setPayAmt(bchAmt.setScale(2, RoundingMode.DOWN));
 				//	Set Major Plan Reference
 				bchPayment.set_ValueOfColumn("LVE_MajorPlan_ID", getLVE_MajorPlan_ID());
 				bchPayment.set_ValueOfColumn("IsChargeBank", bankcharge.isChargeBank());

@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Vector;
 import java.util.logging.Level;
 
@@ -26,6 +27,7 @@ import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
 import org.compiere.util.KeyNamePair;
 import org.compiere.util.Msg;
+import org.compiere.util.TimeUtil;
 
 /**
  *  Create Payment from Major Plan
@@ -38,8 +40,10 @@ public class CreatePaymentMajorPlan
 	/**	Window No			*/
 	public int         m_WindowNo = 0;
 
-	/** MajorPlan     */
+	/** MajorPlan     	*/
 	public int      m_LVE_MajorPlan_ID = 0;
+	/**	PayDate			*/
+	public Timestamp	m_PayDate = (Timestamp)TimeUtil.getDay(System.currentTimeMillis());
 	/**	Logger			*/
 	public static CLogger log = CLogger.getCLogger(CreatePaymentMajorPlan.class);
 	
@@ -60,8 +64,8 @@ public class CreatePaymentMajorPlan
 		StringBuffer sql = new StringBuffer("SELECT mpl.C_Invoice_ID,i.DocumentNo,COALESCE(tit.Name,'')||bp.TaxID||' '||bp.Name AS BPartner, ")	// 1..3
 				.append(DB.TO_CHAR("mp.DateDoc", DisplayType.Date, Env.getAD_Language(Env.getCtx()))+",")	//	4
 				.append(DB.TO_CHAR("mpl.DueDate", DisplayType.Date, Env.getAD_Language(Env.getCtx())))	//	5
-				.append(",(mpl.Amount-COALESCE(al.Amount,0)) AS Amount,ROUND(((mpl.Amount-COALESCE(al.Amount,0)) * (((mptl.InterestPercent / 100) / 360) * (EXTRACT(DAY FROM (Now() - mp.DateDoc)))::numeric)),2) AS InterestTranscurred, ") // 6..7
-				.append("ROUND(((mpl.Amount-COALESCE(al.Amount,0)) + ((mpl.Amount-COALESCE(al.Amount,0)) * (((mptl.InterestPercent / 100) / 360) * (EXTRACT(DAY FROM (Now() - mp.DateDoc)))::numeric))),2) AS LineNetAmt ") // 8
+				.append(",(mpl.Amount-COALESCE(al.Amount,0)) AS Amount,ROUND(((mpl.Amount-COALESCE(al.Amount,0)) * (((mptl.InterestPercent / 100) / 360) * (EXTRACT(DAY FROM (? - mp.DateDoc)))::numeric)),2) AS InterestTranscurred, ") // 6..7
+				.append("ROUND(((mpl.Amount-COALESCE(al.Amount,0)) + ((mpl.Amount-COALESCE(al.Amount,0)) * (((mptl.InterestPercent / 100) / 360) * (EXTRACT(DAY FROM (? - mp.DateDoc)))::numeric))),2) AS LineNetAmt ") // 8
 				.append("FROM LVE_MajorPlanLine mpl ")
 				.append("INNER JOIN LVE_MajorPlan mp ON (mpl.LVE_MajorPlan_ID = mp.LVE_MajorPlan_ID) ")
 				.append("INNER JOIN C_Invoice i ON (mpl.C_Invoice_ID = i.C_Invoice_ID) ")
@@ -79,7 +83,9 @@ public class CreatePaymentMajorPlan
 		try
 		{
 			pstmt = DB.prepareStatement(sql.toString(), null);
-			pstmt.setInt(1, m_LVE_MajorPlan_ID);
+			pstmt.setTimestamp(1, m_PayDate);
+			pstmt.setTimestamp(2, m_PayDate);
+			pstmt.setInt(3, m_LVE_MajorPlan_ID);
 			rs = pstmt.executeQuery();
 			//
 			while (rs.next())

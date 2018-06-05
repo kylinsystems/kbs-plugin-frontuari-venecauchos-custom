@@ -13,6 +13,8 @@ import org.compiere.acct.Doc;
 import org.compiere.acct.Fact;
 import org.compiere.model.MAllocationHdr;
 import org.compiere.model.MAllocationLine;
+import org.compiere.model.MInventory;
+import org.compiere.model.MInvoice;
 import org.compiere.model.MOrder;
 import org.compiere.model.MPayment;
 import org.compiere.model.MSysConfig;
@@ -21,6 +23,8 @@ import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 import org.frontuari.model.MLVEMajorPlanLine;
+import org.frontuari.model.MLVEResultReturnGuarantee;
+import org.frontuari.model.MLVEReturnGuarantee;
 import org.osgi.service.event.Event;
 
 /**
@@ -39,6 +43,9 @@ public class FTUEventsHandler extends AbstractEventHandler {
 		registerTableEvent(IEventTopics.PO_BEFORE_NEW, MPayment.Table_Name);
 		registerTableEvent(IEventTopics.DOC_BEFORE_POST, MAllocationHdr.Table_Name);
 		registerTableEvent(IEventTopics.DOC_AFTER_REVERSECORRECT, MAllocationHdr.Table_Name);
+		registerTableEvent(IEventTopics.DOC_BEFORE_REVERSECORRECT, MInventory.Table_Name);
+		registerTableEvent(IEventTopics.DOC_AFTER_REVERSECORRECT, MInventory.Table_Name);
+		registerTableEvent(IEventTopics.DOC_AFTER_REVERSECORRECT, MInvoice.Table_Name);
 	}
 
 	protected void doHandleEvent(Event event) {
@@ -102,6 +109,50 @@ public class FTUEventsHandler extends AbstractEventHandler {
 						if(LVE_POSDocType_ID != 0){
 							pay.setC_DocType_ID(LVE_POSDocType_ID);
 						}
+					}
+				}
+			}
+		}
+		//	Apply Revert for BX and News Defects Transaction
+		else if(po instanceof MInventory) {
+			MInventory inv = (MInventory)po;
+			if(type.equalsIgnoreCase(IEventTopics.DOC_BEFORE_REVERSECORRECT)){
+				String sql = "SELECT LVE_ReturnGuarantee_ID FROM LVE_ReturnGuarantee WHERE M_Inventory_ID = ? AND Ref_Inventory_ID IS NOT NULL";
+				int rgID = DB.getSQLValue(null, sql, inv.getM_Inventory_ID());
+				if(rgID > 0) {
+					MLVEReturnGuarantee rg = new MLVEReturnGuarantee(po.getCtx(), rgID, po.get_TrxName());
+					throw new AdempiereException("@before.reverse@ @M_Inventory_ID@: "+rg.getRef_Inventory().getDocumentNo());
+				}
+			}
+			else if(type.equalsIgnoreCase(IEventTopics.DOC_AFTER_REVERSECORRECT)) {
+				String sql = "SELECT LVE_ReturnGuarantee_ID FROM LVE_ReturnGuarantee WHERE M_Inventory_ID = ? OR Ref_Inventory_ID = ?";
+				int rgID = DB.getSQLValue(null, sql, inv.getM_Inventory_ID(),inv.getM_Inventory_ID());
+				if(rgID > 0) {
+					MLVEReturnGuarantee rg = new MLVEReturnGuarantee(po.getCtx(), rgID, po.get_TrxName());
+					//	Blank Inventory
+					if(rg.getM_Inventory_ID()== inv.getM_Inventory_ID()) {
+						rg.setM_Inventory_ID(0);
+						rg.saveEx();
+					}
+					else if(rg.getRef_Inventory_ID() == inv.getM_Inventory_ID()) {
+						rg.setRef_Inventory_ID(0);
+						rg.saveEx();
+					}
+				}
+			}
+		}
+		//	Apply revert for BX with CN docs allocated 
+		else if(po instanceof MInvoice) {
+			MInvoice inv = (MInvoice)po;
+			if(type.equalsIgnoreCase(IEventTopics.DOC_AFTER_REVERSECORRECT)) {
+				String sql ="SELECT LVE_ResultReturnGuarantee_ID FROM LVE_ResultReturnGuarantee WHERE C_Invoice_ID = ?";
+				int rrgID = DB.getSQLValue(null, sql, inv.getC_Invoice_ID());
+				if(rrgID > 0) {
+					MLVEResultReturnGuarantee rrg = new MLVEResultReturnGuarantee(po.getCtx(), rrgID, po.get_TrxName());
+					//	Blank Credit Note
+					if(rrg.getC_Invoice_ID() == inv.getC_Invoice_ID()) {
+						rrg.setC_Invoice_ID(0);
+						rrg.saveEx();
 					}
 				}
 			}
